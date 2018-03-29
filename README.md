@@ -3,17 +3,18 @@
 Micasaverde Vera home automation controller plug-in to connect with a Texecom Premier Elite Series alarm panel
 
 Uses Texecom Simple Protocol via IP or serial connection.  Supports  the following:
-- arm up to 2 Areas
-- part-arm up to 2 Areas
-- disarm up to 2 Areas
+- Arm up to 2 Areas
+- Part-arm up to 2 Areas
+- Disarm up to 2 Areas
 - Control of PC Outputs 1-4
+- Polls zones every ~0.6s
 - Reports zone status,
 - Gathers Zone Names and types
-- reports partition status (including Exit/Entry started)
+- Reports partition status (including Exit/Entry started)
 - Control and Control battery voltages/Current
-- keypad display
+- Keypad display
 - Virtual Keypad in Vera 
-- comms status and auto attempts reconnection/reports failures
+- Comms status and auto attempts reconnection/reports failures
 - Support for Pushover notifications upon zone active when zone is armed (Entry circuits only cause notification if Area assigned is in alarm)
                                             
 Polling is  sequentially done in the following order:
