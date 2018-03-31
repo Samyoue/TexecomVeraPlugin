@@ -62,13 +62,13 @@ Getting Started (UI7)
 
 8	If you use Pushover messaging options, you will receive a notification on your phone or other Pushover-enabled device in an alarm state, detailing the zone that has tripped the alarm (or Set/Unset/Partset or Vera Restart notifications). If you specify a Device it will only deliver to that device. You must create your own Pushover App on the Pushover site and use the relevant user and app keys supplied by them.
 
-12	Zone device blocks have two variables called LatchStatus and LatchPeriod.  When a zone
+9	Zone device blocks have two variables called LatchStatus and LatchPeriod.  When a zone
 	is tripped, if LatchPeriod is non-zero, LatchStatus will be set to '1'.  When no further
 	trips have occurred for the number of minutes set in LatchPeriod, LatchStatus will be
 	set to '0'.  This feature can be used in a Vera scene to switch off lights etc. after
 	a period of no movement in a room.  Set LatchPeriod to zero to disable this feature.
 	
-13.	You can also specify which zone is armed by partset/fullset etc on the Setup page. NB. When a circuit is omitted for partset by your alarm system (eg. Landing PIR), Vera displays this as the same icon as if it were active at the moment...
+10.	You can also specify which zone is armed by partset/fullset etc on the Setup page. NB. When a circuit is omitted for partset by your alarm system (eg. Landing PIR), Vera displays this as the same icon as if it were active at the moment...
 
 
 Getting Started (UI5)
@@ -122,6 +122,7 @@ Alan Carter February 2016
 	a period of no movement in a room.  Set LatchPeriod to zero to disable this feature.
 
 Any problems/comments, please feel free to contact me via the vera forum thread/PM,
+http://forum.micasaverde.com/index.php/topic,77475.0.html
 
 Sam.
 
