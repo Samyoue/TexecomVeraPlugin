@@ -1,8 +1,8 @@
 {
-    "default_icon": "etc/cmh/TexecomProb.png",
+    "default_icon": "https://image.ibb.co/bszZsc/Texecom_Prob.png",
     "state_icons": [
         {
-            "img": "etc/cmh/TexecomDisarmed.png",
+            "img": "https://image.ibb.co/fX0UQx/Texecom_Disarmed.png",
             "conditions": [
                 {
                     "service": "urn:micasaverde-com:serviceId:AlarmPartition2",
@@ -13,7 +13,7 @@
             ]
         },
         {
-            "img": "etc/cmh/TexecomPart.png",
+            "img": "https://image.ibb.co/iYL7Cc/Texecom_Part.png",
             "conditions": [
                 {
                     "service": "urn:micasaverde-com:serviceId:AlarmPartition2",
@@ -24,7 +24,7 @@
             ]
         },
         {
-            "img": "etc/cmh/TexecomFull.png",
+            "img": "https://image.ibb.co/crLkyH/Texecom_Full.png",
             "conditions": [
                 {
                     "service": "urn:micasaverde-com:serviceId:AlarmPartition2",
@@ -35,7 +35,7 @@
             ]
         },
         {
-            "img": "etc/cmh/TexecomExit.png",
+            "img": "https://image.ibb.co/hb35yH/Texecom_Exit.png",
             "conditions": [
                 {
                     "service": "urn:micasaverde-com:serviceId:AlarmPartition2",
@@ -46,7 +46,7 @@
             ]
         },
         {
-            "img": "etc/cmh/TexecomEntry.png",
+            "img": "https://image.ibb.co/drWsdH/Texecom_Entry.png",
             "conditions": [
                 {
                     "service": "urn:micasaverde-com:serviceId:AlarmPartition2",
@@ -57,7 +57,7 @@
             ]
         },
         {
-            "img": "etc/cmh/TexecomAlarm.png",
+            "img": "https://image.ibb.co/cfkJJH/Texecom_Alarm.png",
             "conditions": [
                 {
                     "service": "urn:micasaverde-com:serviceId:AlarmPartition2",
@@ -68,7 +68,7 @@
             ]
         },
         {
-            "img": "etc/cmh/TexecomProb.png",
+            "img": "https://image.ibb.co/bszZsc/Texecom_Prob.png",
             "conditions": [
                 {
                     "service": "urn:micasaverde-com:serviceId:AlarmPartition2",
@@ -79,7 +79,7 @@
             ]
         },
         {
-            "img": "etc/cmh/TexecomProb.png",
+            "img": "https://image.ibb.co/bszZsc/Texecom_Prob.png",
             "conditions": [
                 {
                     "service": "urn:micasaverde-com:serviceId:AlarmPartition2",
