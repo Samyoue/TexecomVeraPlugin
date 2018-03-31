@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<implementation>
+  <settings>
+    <protocol>raw</protocol>
+  </settings>
+  <files>L_Texecom.lua</files>
+  <incoming>
+  	<lua>
+		texecomIncoming(lul_data)
+	</lua>
+  </incoming>
+  <startup>texecomStartup</startup>
+  <actionList>
+  <action>
+    <serviceId>urn:micasaverde-com:serviceId:AlarmPartition2</serviceId>
+    <name>RequestArmMode</name>
+    <run>
+    	local state = lul_settings.State
+    	local pin = lul_settings.PINCode or ""
+    	local device = lul_device
+    	local partition = 0x00
+    	if (device == partition_device1) then
+    		partition = 0x01
+    		partition_request_device = partition_device1
+    	elseif (max_partitions == 2) and (device == partition_device2) then
+    		partition = 0x02
+    		partition_request_device = partition_device2
+   		end
+		luup.log(string.format("TEXECOM: RequestArmMode " .. (state or "N/A")), 10)
+		if (state == "Disarmed") then
+			local retries = 0
+			while (message_type ~= "N") do
+				luup.sleep(500)
+				retries = retries + 1
+				if retries > 3 then break end
+			end
+			QoutgoingPDU = string.char(0x5C, 0x44, partition, 0x2F)
+			Qmessage_type = "A"		
+			QnextOperation=8		
+			Qcmd()
+--			notifyUserP("Tried Disarm", "0","0")
+			luup.log("TEXECOM: RequestArmMode state requested: " .. (state or "N/A"))
+		elseif (state == "Full") or (state == "Armed") or (state == "ArmedInstant") or (state == "Force") then
+			local retries = 0
+			while (message_type ~= "N") do
+				luup.sleep(500)
+				retries = retries + 1
+				if retries > 3 then break end
+			end
+			QoutgoingPDU = string.char(0x5C, 0x41, partition, 0x2F)
+			Qmessage_type = "A"
+			QnextOperation=8		
+			Qcmd()
+--			notifyUserP("Tried full", "0","0")
+			luup.log("TEXECOM: RequestArmMode state requested: " .. (state or "N/A"))
+		elseif (state == "Part") or (state == "Stay") or (state == "StayInstant") then
+			local retries = 0
+			while (message_type ~= "N") do
+				luup.sleep(500)
+				retries = retries + 1
+				if retries > 3 then break end
+			end
+			QoutgoingPDU = string.char(0x5C, 0x59, partition, 0x2F)
+			Qmessage_type = "A"
+			QnextOperation=8		
+			Qcmd()
+--			notifyUserP("Tried part", "0","0")
+			luup.log("TEXECOM: RequestArmMode state requested: " .. (state or "N/A"))
+		else
+			luup.log("TEXECOM: RequestArmMode invalid state requested " .. (state or "N/A"))
+		end
+    </run>
+  </action>
+  <action>
+	<serviceId>urn:micasaverde-com:serviceId:SecuritySensor1</serviceId>
+	<name>SetArmed</name>
+	<run>
+		setBypass(lul_device, lul_settings.newArmedValue)
+	</run>
+  </action>
+  <action>      
+            <serviceId>urn:micasaverde-com:serviceId:TexecomAlarmPanel1</serviceId>
+     <name>SendPushOverNotification</name>
+            <run>
+                notifyUserP()
+            </run>
+        </action>
+  <action>
+     <serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
+     <name>SetTarget</name>
+     <run>
+		local opPDU = string.char(0x00)
+		local opCmd = string.char(0x5C, 0x4F, 0x58)
+		local opMask =string.char(0x00)
+		if (lul_settings.newTargetValue == "1") then
+			opMask = string.char(0xFF)
+		end
+		if (luup.devices[lul_device].id == "X01") then
+			opPDU = string.char(0x01)
+		elseif (luup.devices[lul_device].id == "X02") then
+			opPDU = string.char(0x02)
+		elseif (luup.devices[lul_device].id == "X03") then
+			opPDU = string.char(0x04)
+		elseif (luup.devices[lul_device].id == "X04") then
+			opPDU = string.char(0x08)
+		elseif (luup.devices[lul_device].id == "X05") then
+			opPDU = string.char(0x10)
+		elseif (luup.devices[lul_device].id == "X06") then
+			opPDU = string.char(0x20)
+		elseif (luup.devices[lul_device].id == "X07") then
+			opPDU = string.char(0x40)
+		elseif (luup.devices[lul_device].id == "X08") then
+			opPDU = string.char(0x80)
+		elseif (luup.devices[lul_device].id == "P01") then
+			opCmd = string.char(0x5C, 0x4F, 0x50)
+			opPDU = string.char(0x01)
+		elseif (luup.devices[lul_device].id == "P02") then
+			opCmd = string.char(0x5C, 0x4F, 0x50)
+			opPDU = string.char(0x12)
+		elseif (luup.devices[lul_device].id == "P03") then
+			opCmd = string.char(0x5C, 0x4F, 0x50)
+			opPDU = string.char(0x10)
+		elseif (luup.devices[lul_device].id == "P04") then
+			opCmd = string.char(0x5C, 0x4F, 0x50)
+			opPDU = string.char(0x0C)
+		end
+			QoutgoingPDU = opCmd .. opMask .. opPDU .. string.char(0x2F)
+			QnextOperation = 2
+			Qmessage_type = "O" 
+			Qcmd()
+			luup.variable_set(SWITCH_SID, "Status", lul_settings.newTargetValue, lul_device)
+--		local msg = "OP-"..QnextOperation.." MT-"..Qmessage_type.." ID-"..luup.devices[lul_device].id .." TARGET-"..lul_settings.newTargetValue.." PDU-"..PDUtoString(QoutgoingPDU)
+--		notifyUserP(msg,"0","0")
+     </run>
+  </action>
+  <action>      
+     <serviceId>urn:micasaverde-com:serviceId:TexecomAlarmPanel1</serviceId>
+     <name>SyncTime</name>
+     <run>
+		luup.log(string.format("TEXECOM: SyncTime"), 10)
+		local t = os.date('*t')
+		t.year = t.year - 2000
+		local retries = 0
+		while (message_type ~= "N") do
+			luup.sleep(500)
+			retries = retries + 1
+			if retries > 3 then break end
+		end
+		message_type = "T"
+		outgoingPDU = string.char(0x5C, 0x54) .. string.char(t.day, t.month, t.year, t.hour, t.min) .. string.char(0x2F)
+		texecomSendPDU()
+     </run>
+  </action>
+
+  <action>      
+	<serviceId>urn:micasaverde-com:serviceId:TexecomAlarmPanel1</serviceId>
+	<name>keyPress</name>
+    <run>
+		local ButtonPush =  lul_settings.newKeyPress
+		local keyPlen = string.len(ButtonPush)
+		local numKeys=string.format('0x%02d',keyPlen)
+		local keysPushed=''
+--		if(string.len(ButtonPush)>1) then
+			for i = 1, string.len(ButtonPush) do
+				local currkeyP = string.sub(ButtonPush, -i, -i)
+				keysPushed=string.char(ButtonPushed[currkeyP])..keysPushed
+			end
+			
+--[[		else
+			keysPushed = ButtonPushed[ButtonPush]
+		end]]
+		QnextOperation=4
+		Qmessage_type = "KP"
+		QoutgoingPDU = string.char(0x5C, 0x4B, numKeys).. keysPushed..string.char(0x2F)
+		Qcmd()
+    </run>
+  </action>
+
+  <action>      
+	<serviceId>urn:micasaverde-com:serviceId:TexecomAlarmPanel1</serviceId>
+	<name>ResetComms</name>
+    <run>
+    	zoneStatusNotSet = 1
+    	partitionStatusNotSet = 1
+		initialiseComms()
+    </run>
+  </action>
+  </actionList>
+</implementation>

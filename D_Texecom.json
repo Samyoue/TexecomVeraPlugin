@@ -1,0 +1,277 @@
+{
+    "default_icon": "etc/cmh-ludl/TexecomLogo.jpg.lzo",
+    "imgIconBody": "",
+    "imgIconDimmable": "",
+    "imgIconTurnable": "",
+    "imgIconMin": "",
+    "imgIconMax": "",
+    "halloIconsDir": "pics\/hallo",
+    "DisplayStatus": {},
+    "doc_url": {
+    },
+    "Tabs": [
+    
+        {
+            "Label": {
+                "lang_tag": "ui7_virtual_rkp",
+                "text": "Setup"
+            },
+            "Position": "0",
+            "TabType": "javascript",
+        "top_navigation_tab": 1,
+            "ScriptName": "J_Texecom.js",
+            "Function": "Launch"
+        },
+        {
+            "Label": {
+                "lang_tag": "ui7_virtual_rkp",
+                "text": "Virtual Keypad"
+            },
+            "Position": "0",
+            "TabType": "javascript",
+        "top_navigation_tab": 1,
+            "ScriptName": "J_TexecomRKP.js",
+            "Function": "Launch_Rkp"
+        },
+        {
+        "Label": {
+            "lang_tag": "ui7_tabname_status",
+            "text": "Status"
+        },
+        "Position": "1",
+        "TabType": "flash",
+        "ControlGroup": [
+            {
+                "id": "1",
+                "isSingle": "1",
+                "scenegroup": "1"
+            }
+        ],
+        "SceneGroup": [
+            {
+                "id": "1",
+                "top": "2",
+                "left": "0",
+                "x": "2",
+                "y": "1"
+            }
+        ],
+        "Control": [
+           
+		              {
+   "ControlGroup": 1,
+                    "ControlType": "label",
+                    "Label": {
+                        "lang_tag": "status",
+                        "text": "Status: "
+                    },
+                    "left": 0,
+                    "Display": {
+                        "Top": 60,
+                        "Left": 50,
+                        "Width": 75,
+                        "Height": 20
+                    }
+                },
+                {
+   "ControlGroup": 1,
+                    "ControlType": "variable",
+                    "Display": {
+                        "Service": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
+                        "Variable": "Status",
+                        "Top": 60,
+                        "Left": 150,
+                        "Width": 400,
+                        "Height": 20
+                    }
+                },
+
+{
+   "ControlGroup": 1,  
+   "ControlType": "line_break"
+},
+  
+                {
+   "ControlGroup": 1,
+                    "ControlType": "label",
+                    "Label": {
+                        "lang_tag": "pollt",
+                        "text": "Polling Every: "
+                    },
+                    "left": 0,
+                    "Display": {
+                        "Top": 80,
+                        "Left": 50,
+                        "Width": 75,
+                        "Height": 20
+                    }
+                },
+                {
+   "ControlGroup": 1,
+                    "ControlType": "variable",
+                    "Display": {
+                        "Service": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
+                        "Variable": "PollTime",
+                        "Top": 80,
+                        "Left": 150,
+                        "Width": 400,
+                        "Height": 20
+                    }
+                },
+                {
+   "ControlGroup": 1,
+                    "ControlType": "label",
+                    "Label": {
+                        "lang_tag": "pollt",
+                        "text": "Last Poll Time: "
+                    },
+                    "left": 0,
+                    "Display": {
+                        "Top": 80,
+                        "Left": 250,
+                        "Width": 75,
+                        "Height": 20
+                    }
+                },
+                {
+   "ControlGroup": 1,
+                    "ControlType": "variable",
+                    "Display": {
+                        "Service": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
+                        "Variable": "LastPollTime",
+                        "Top": 80,
+                        "Left": 350,
+                        "Width": 400,
+                        "Height": 20
+                    }
+                },
+
+{
+   "ControlGroup": 1,  
+   "ControlType": "line_break"
+},
+                {
+   "ControlGroup": 1,
+                    "ControlType": "label",
+                    "Label": {
+                        "lang_tag": "keypad",
+                        "text": "Keypad Display: "
+                    },
+                    "left": 0,
+                    "Display": {
+                        "Top": 20,
+                        "Left": 50,
+                        "Width": 75,
+                        "Height": 20
+                    }
+                },
+
+{
+   "ControlGroup": 1,  
+   "ControlType": "line_break"
+},
+
+                {
+   "ControlGroup": 1,
+                    "ControlType": "variable",
+                    "Display": {
+                        "Service": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
+                        "Variable": "KeypadDisplay1",
+                        "Top": 20,
+                        "Left": 150,
+                        "Width": 400,
+                        "Height": 20
+                    }
+                },
+                {
+   "ControlGroup": 1,
+                    "ControlType": "label",
+                    "Label": {
+                        "lang_tag": "keypad2",
+                        "text": ""
+                    },
+                    "left": 0,
+                    "Display": {
+                        "Top": 40,
+                        "Left": 50,
+                        "Width": 75,
+                        "Height": 20
+                    }
+                },
+                {
+                    
+   "ControlGroup": 1,
+"ControlType": "variable",
+                    "Display": {
+                        "Service": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
+                        "Variable": "KeypadDisplay2",
+                        "Top": 40,
+                        "Left": 150,
+                        "Width": 400,
+                        "Height": 20
+                    }
+                },
+        ]
+    },
+    
+    {
+      "Label": {
+        "lang_tag": "ui7_advanced",
+        "text": "Advanced"
+      },
+      "Position": "2",
+      "TabType": "javascript",
+      "ScriptName": "shared.js",
+      "Function": "advanced_device"
+    },
+    {
+          "Label": {
+            "lang_tag": "ui7_logs",
+            "text": "Logs"
+          },
+          "Position": "3",
+          "TabType": "javascript",
+          "ScriptName": "shared.js",
+          "Function": "device_logs"
+    },
+    {
+        "Label": {
+            "lang_tag": "ui7_notifications",
+            "text": "Notifications"
+        },
+        "Position": "4",
+        "TabType": "javascript",
+        "ScriptName": "shared.js",
+        "Function": "device_notifications"
+    },
+    {
+    "Label": {
+    "lang_tag": "ui7_device_scenes",
+    "text": "Scenes"
+    },
+    "Position": "5",
+    "TabType": "javascript",
+    "ScriptName": "shared.js",
+    "Function": "device_scenes"
+    }
+  ],
+
+    "sceneList": {
+        "group_1": {
+            "cmd_1": {
+                "label": "keyPress",
+                "serviceId": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
+                "action": "keyPress",
+                "argumentList": {}
+            },
+            "cmd_2": {
+                "label": "ResetComms",
+                "serviceId": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
+                "action": "ResetComms",
+                "argumentList": {}
+            }
+        }
+    },
+    "DeviceType": "urn:schemas-micasaverde-com:device:AlarmPanel:1"
+}
+ 

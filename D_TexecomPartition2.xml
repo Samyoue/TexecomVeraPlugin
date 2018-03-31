@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <device>
+    <deviceType>urn:schemas-micasaverde-com:device:AlarmPartition:2</deviceType>
+    <staticJson>D_TexecomPartition2.json</staticJson> 
+    <friendlyName>Texecom Alarm Panel Zone</friendlyName>
+    <manufacturer>Texecom</manufacturer>
+    <serviceList>
+      <service>
+        <serviceType>urn:schemas-micasaverde-com:service:AlarmPartition:2</serviceType>
+        <serviceId>urn:micasaverde-com:serviceId:AlarmPartition2</serviceId>
+        <SCPDURL>S_AlarmPartition2.xml</SCPDURL>
+      </service>
+    </serviceList>
+  </device>
+</root>

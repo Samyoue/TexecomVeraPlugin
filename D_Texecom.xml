@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <device>
+    <deviceType>urn:schemas-micasaverde-com:device:AlarmPanel:1</deviceType>
+    <staticJson>D_Texecom.json</staticJson>
+    <serviceList>
+	<service>
+		<serviceType>urn:schemas-micasaverde-com:service:TexecomAlarmPanel:1</serviceType>
+		<serviceId>urn:micasaverde-com:serviceId:TexecomAlarmPanel1</serviceId>
+		<SCPDURL>S_Texecom.xml</SCPDURL>
+	</service>
+    </serviceList>
+    <friendlyName>Texecom Alarm Panel</friendlyName>
+    <manufacturer>Texecom</manufacturer>
+    <manufacturerURL>http://www.texe.com</manufacturerURL>
+    <protocol>raw</protocol>
+    <handleChildren>1</handleChildren>
+    <implementationList>
+      <implementationFile>I_Texecom.xml</implementationFile>
+    </implementationList>
+   </device>
+</root>
