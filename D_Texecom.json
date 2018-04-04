@@ -1,14 +1,10 @@
 {
-    "default_icon": "etc/cmh-ludl/TexecomLogo.jpg.lzo",
-    "imgIconBody": "",
-    "imgIconDimmable": "",
-    "imgIconTurnable": "",
-    "imgIconMin": "",
-    "imgIconMax": "",
-    "halloIconsDir": "pics\/hallo",
-    "DisplayStatus": {},
-    "doc_url": {
-    },
+    "default_icon": "https://image.ibb.co/c3BUpx/texeplugin.png",
+        "state_icons": [
+        {
+            "img": "https://image.ibb.co/c3BUpx/texeplugin.png"
+        }
+    ],
     "Tabs": [
     
         {
@@ -27,7 +23,7 @@
                 "lang_tag": "ui7_virtual_rkp",
                 "text": "Virtual Keypad"
             },
-            "Position": "0",
+            "Position": "1",
             "TabType": "javascript",
         "top_navigation_tab": 1,
             "ScriptName": "J_TexecomRKP.js",
@@ -38,7 +34,7 @@
             "lang_tag": "ui7_tabname_status",
             "text": "Status"
         },
-        "Position": "1",
+        "Position": "2",
         "TabType": "flash",
         "ControlGroup": [
             {
@@ -56,10 +52,11 @@
                 "y": "1"
             }
         ],
-        "Control": [
-           
+           "Control": [
+                
 		              {
    "ControlGroup": 1,
+
                     "ControlType": "label",
                     "Label": {
                         "lang_tag": "status",
@@ -72,7 +69,8 @@
                         "Width": 75,
                         "Height": 20
                     }
-                },
+                }  
+                ,
                 {
    "ControlGroup": 1,
                     "ControlType": "variable",
@@ -210,68 +208,20 @@
                         "Width": 400,
                         "Height": 20
                     }
-                },
-        ]
-    },
-    
-    {
-      "Label": {
-        "lang_tag": "ui7_advanced",
-        "text": "Advanced"
-      },
-      "Position": "2",
-      "TabType": "javascript",
-      "ScriptName": "shared.js",
-      "Function": "advanced_device"
-    },
-    {
-          "Label": {
-            "lang_tag": "ui7_logs",
-            "text": "Logs"
-          },
-          "Position": "3",
-          "TabType": "javascript",
-          "ScriptName": "shared.js",
-          "Function": "device_logs"
-    },
-    {
-        "Label": {
-            "lang_tag": "ui7_notifications",
-            "text": "Notifications"
+                }
+            ]
         },
-        "Position": "4",
-        "TabType": "javascript",
-        "ScriptName": "shared.js",
-        "Function": "device_notifications"
-    },
-    {
-    "Label": {
-    "lang_tag": "ui7_device_scenes",
-    "text": "Scenes"
-    },
-    "Position": "5",
-    "TabType": "javascript",
-    "ScriptName": "shared.js",
-    "Function": "device_scenes"
-    }
-  ],
-
-    "sceneList": {
-        "group_1": {
-            "cmd_1": {
-                "label": "keyPress",
-                "serviceId": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
-                "action": "keyPress",
-                "argumentList": {}
+        {
+            "Label": {
+                "lang_tag": "ui7_advanced",
+                "text": "Advanced"
             },
-            "cmd_2": {
-                "label": "ResetComms",
-                "serviceId": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
-                "action": "ResetComms",
-                "argumentList": {}
-            }
+            "Position": "2",
+            "TabType": "javascript",
+            "ScriptName": "shared.js",
+            "Function": "advanced_device"
         }
-    },
+    ],
+
     "DeviceType": "urn:schemas-micasaverde-com:device:AlarmPanel:1"
 }
- 
