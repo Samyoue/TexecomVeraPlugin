@@ -1267,6 +1267,7 @@ function texecomSendPDU()
   if luup.io.write(outgoingPDU) == false then
       luup.log('TEXECOM: PDU transmission failed: '..outgoingPDU)
 
+    luup.call_timer("texecomSendPDU", 1,'5','', "")
     luup.variable_set(PANEL_SID, "Status", "cant send PDU", panel_device) 
     luup.set_failure(true)
     return false
