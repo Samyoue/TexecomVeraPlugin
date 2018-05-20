@@ -103,6 +103,15 @@ function openTab(evt, tabName) {
 			<td>Plugin Version</td>
 			<td id="TexecomVersion"></td>
 		</tr>
+
+		<tr>
+			<td>Connect Via:</td>
+			<td><select id="IP/SerialDD" onchange="ipser()"><option value="s">Serial</option><option value="i">IP</option></select></td>
+		</tr>
+		<tr>
+			<td id="connDesc">Connection Settings:</td>
+			<td id="connSett"></td>
+		</tr>
 		<tr>
 			<td>Panel UDL Code</td>
 			<td><input id="Panel UDL Code" type="text" placeholder="UDL Code" value="" /></td>
@@ -116,12 +125,12 @@ function openTab(evt, tabName) {
 			<td><input id="Grab Zone Names on Next LUUP Restart (1= Yes, 0=No)CB" type="checkbox" /></td>
 		</tr>
 		<tr>
-			<td>Used Zones to be Ignored</td>
+			<td>Used Zones <strong>NOT </strong>to be Created</td>
 			<td><textarea id="Used Zones to be Ignored (Format: 001,002,003)" cols="20" rows="1" style="width:215px;height:50px"  placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 
 		<tr>
-			<td>Unused Zones to be Added</td>
+			<td><strong>Unused</strong> Zones to be Created</td>
 			<td><textarea id="Unused Zones to be Added (Format: 001,002,003)" cols="20" rows="1" style="width:215px;height:50px"  placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
@@ -133,19 +142,19 @@ function openTab(evt, tabName) {
 			<td><select id="MaxPartitionsDD" onchange="hideInpDD('MaxPartitionsDD','Zones to arm in Area B Full Set','Zones to arm in Area B Part Set')"><option value="1">1 Area</option><option value="2">2 Areas</option></select></td>
 		</tr>
 		<tr>
-			<td>Zones to arm in Area A Full Set</td>
+			<td>Zones to arm in Vera when Area A Full Set</td>
 			<td><textarea id="Zones to arm in Area A Full Set" cols="20" rows="1" style="width:215px;height:50px" placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
-			<td>Zones to arm in Area A Part Set</td>
+			<td>Zones to arm in Vera when Area A Part Set</td>
 			<td><textarea id="Zones to arm in Area A Part Set" cols="20" rows="1" style="width:215px;height:50px" placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
-			<td>Zones to arm in Area B Full Set</td>
+			<td>Zones to arm in Vera when Area B Full Set</td>
 			<td><a  id="txtBf"></a><textarea id="Zones to arm in Area B Full Set" cols="20" rows="1" style="width:215px;height:50px" placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
-			<td>Zones to arm in Area B Part Set</td>
+			<td>Zones to arm in Vera when Area B Part Set</td>
 			<td><a id="txtBp"></a><textarea id="Zones to arm in Area B Part Set" cols="20" rows="1" style="width:215px;height:50px" placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 	</table>
@@ -327,6 +336,19 @@ Uses the <a href="http://www.clickatell.com" target="_blank">Clickatell</a> Serv
 <script>
 // Get the element with id="defaultOpen" and click on it
 document.getElementById("defaultOpen").click();
+
+function ipser(){
+	if (document.getElementById('IP/SerialDD').value=='i'){
+		document.getElementById('connDesc').innerHTML='Connection Settings (ip:port):'
+		document.getElementById('connSett').innerHTML='<input id="PanelIP" type="text" placeholder="eg. 192.168.1.100" value="" style="width:125px"/> : <input id="PanelPort" type="text" placeholder="eg. 10001" value="10001"  style="width:75px"/>'
+		operation('PanelIP', 0)
+		operation('PanelPort', 0)			
+	}
+	else {
+		document.getElementById('connDesc').innerHTML='Connection Settings:'
+		document.getElementById('connSett').innerHTML='Goto "Apps">"Serial Port Configuration" and choose<br>the Texecom Elite Device<br>and set the following options, <br>Baud Rate: <i>19200</i>, <br>Parity: <i>None</i>, <br>Data Bits: <i>8</i>, <br>Stop Bits: <i>2</i>.'
+	}
+}
 function redownload(){
 	document.getElementById('Cust Logo Download Location').value='redownload'
 }
@@ -383,6 +405,21 @@ function saveGet(page,saveit){
 		operation('Panel UDL Code',saveit)
 		operation('Panel Engineer Code',saveit)
 		operation('Grab Zone Names on Next LUUP Restart (1= Yes, 0=No)CB',saveit)
+		operation('IP/SerialDD',saveit)
+		setTimeout(ipser(),50)
+		setTimeout(function(){
+		ip=''
+		if(document.getElementById('IP/SerialDD').value=='i'){
+			operation('PanelIP', saveit)
+			operation('PanelPort', saveit)			
+			ip=document.getElementById('PanelIP').value+':'+document.getElementById('PanelPort').value
+		} else{
+			ip=''
+		}
+		if(saveit==1){
+			Fipset(ip)
+		}
+		},100)
 		operation('Used Zones to be Ignored (Format: 001,002,003)',saveit)
 		operation('Unused Zones to be Added (Format: 001,002,003)',saveit)
 		operation('24 Hour Zones (NEVER disarmed by Vera)',saveit)
@@ -521,6 +558,10 @@ function Fsave(varN,varV){
 }
 function Freloadluup(){
 dru=api.getDataRequestURL()+'?id=lu_action&serviceId=urn:micasaverde-com:serviceId:HomeAutomationGateway1&action=RunLua&Code=luup.reload()'
+ document.getElementById('I1').src=dru
+}
+function Fipset(ip){
+dru=api.getDataRequestURL()+'?id=lu_action&serviceId=urn:micasaverde-com:serviceId:HomeAutomationGateway1&action=RunLua&Code=luup.ip_set("'+ip+'", '+devID+')'
  document.getElementById('I1').src=dru
 }
 

@@ -27,11 +27,12 @@ local ZiAF = "001,002"
 local ZiAP = "001,002"
 local ZiBF = ""
 local ZiBP = ""
+local CctsUsed='001'
 ------------------------------------------------------------------------------------
 -------------------------------VARIABLES USED--------------------------------------- 
 ------------------------------------------------------------------------------------
-TEXECOM_VERSION				=	"2.66"
-local panelType = '24'
+TEXECOM_VERSION				=	"2.67"
+local panelType = '48'
 local outgoingPDU 			=	""
 local incomingPDU 			=	""
 local panel_device 			=	0
@@ -433,13 +434,20 @@ end
 -- Request access to panel. 
 -- Note that Texecom will disable access if no command is sent within 60 seconds
 function initialiseComms()
+    luup.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 0')
+
   udlCode = luup.variable_get(PANEL_SID, "Panel UDL Code", panel_device) 
   luup.variable_set(PANEL_SID, "Status", "Requesting Access- ".. udlCode, panel_device) 
   local retries = 0
   message_type = "I"
   incomingPDU = ""
   outgoingPDU = string.char(0x5C, 0x57).. udlCode.. string.char(0x2F) 
-  texecomSendPDU()
+  if(  luup.variable_get(PANEL_SID, 'IP/Serial', panel_device) =='i') then
+    luup.call_timer("texecomSendPDU", 1,'5','', "")
+  else
+    texecomSendPDU()
+  end
+  
 end
 
 -- Set panel time to Vera time at startup then on request 
@@ -882,6 +890,7 @@ function texecomStartup(lul_device)
   luup.log('TEXE 1')
   PanelConfigured = 0   	
   panel_device = lul_device
+  luup.log('TEXE p='..panel_device)
   luup.variable_set(PANEL_SID, "Status", "Initialising...", panel_device)
 
   udlCode = UIvar("Panel UDL Code", "1234")
@@ -896,7 +905,7 @@ function texecomStartup(lul_device)
   ignoreCcts = UIvar("Used Zones to be Ignored (Format: 001,002,003)", "")
   addUnusedCcts = UIvar("Unused Zones to be Added (Format: 001,002,003)", "")
   ZntD = UIvar("24 Hour Zones (NEVER disarmed by Vera)", "")
-
+CctsUsed=UIvar("CctsUsed",'')
   POapp =  UIvar("PushOver App Token", "")
   POuser =  UIvar("PushOver User Token", "")
   POtitle = UIvar("PushOver Message Title", "Texecom Alarm System")
@@ -909,6 +918,15 @@ function texecomStartup(lul_device)
   POdevCh4 = UIvar("PushOver - Device To Receive Set/Unset Notifications (Blank = All With User Token)", "")
   POrestart = UIvar("PushOver Notification on Vera Restart (1 = Yes, 0 = No)", "1")
 
+  ZiAF = UIvar("Zones to arm in Area A Full Set", CctsUsed)
+  ZiAP = UIvar("Zones to arm in Area A Part Set", CctsUsed)	
+  ZiBF = UIvar("Zones to arm in Area B Full Set", CctsUsed)
+  ZiBP = UIvar("Zones to arm in Area B Part Set", CctsUsed)
+  
+  UIvar('IP/Serial','s')
+  UIvar('PanelIP', '')
+  UIvar('PanelPort', '10001')
+
   luup.variable_set(PANEL_SID, "Status", "Initialising...1", panel_device)
   luup.log("TEXECOM: starting ... device #"..tostring(panel_device).." starting up with id "..luup.devices[panel_device].id, 10)
   luup.variable_set(PANEL_SID, "TexecomVersion", TEXECOM_VERSION, panel_device)
@@ -916,23 +934,31 @@ function texecomStartup(lul_device)
   if (ipAddress and ipPort ~= "") then
     luup.log(string.format ("(texecomStartup) ipAddress=%s, ipPort=%s", tostring(ipAddress), tostring (ipPort)))
     luup.io.open (panel_device, ipAddress, ipPort)
+    luup.log('TEXECOM STARTUP IP')
+
   else
     luup.log("(texecomStartup) Running on Serial.")
+
     if( luup.io.is_connected(panel_device) == false ) then
       luup.log("TEXECOM: no port for Texecom",1)
       luup.task('Assign IP Address or Serial Port for Texecom',2,'Texecom',-1)
       return false
     end
   end
+  luup.log('TEXECOM STARTUP 1A')
   ui7Check = luup.variable_get(PANEL_SID, "UI7Check", panel_device) or ""
   if ui7Check == "" then
     luup.variable_set(PANEL_SID, "UI7Check", "false", panel_device)
     ui7Check = "false"
   end
+  luup.log('TEXECOM STARTUP 1B')
+
   if( luup.version_branch == 1 and luup.version_major == 7 and ui7Check == "false") then
     luup.variable_set(PANEL_SID, "UI7Check", "true", panel_device)
     ui7Check = "true"
   end
+  luup.log('TEXECOM STARTUP 1C')
+
   if (luup.variable_get(PANEL_SID, "MaxPartitions", panel_device) ~= nil) and (luup.variable_get(PANEL_SID, "MaxPartitions", panel_device) ~= "") then
     local max_par_string = luup.variable_get(PANEL_SID, "MaxPartitions", panel_device)
     max_partitions = tonumber(max_par_string)
@@ -947,6 +973,7 @@ function texecomStartup(lul_device)
   else
     luup.variable_set(PANEL_SID, "MaxPartitions", max_partitions, panel_device)
   end
+  luup.log('TEXECOM STARTUP 1D')
 
   if(handler=='1')then
     HtDev=readFile('/HtDevNo')
@@ -1018,7 +1045,7 @@ function init2()
         luup.chdev.append(panel_device,child_devices,s,cctTxt,"urn:schemas-micasaverde-com:device:MotionSensor:1","D_MotionSensor1.xml","","",false)
       end
       local child = findChild(panel_device, s)	
-      luup.attr_set("name",cctTxt, child)
+--      luup.attr_set("name",cctTxt, child)
       last_zone = i
       if (last_zone > 15) then
         endzone = "0x" .. string.format("%X", last_zone)
@@ -1027,12 +1054,6 @@ function init2()
       end
     end
   end
-
-  ZiAF = UIvar("Zones to arm in Area A Full Set", CctsUsed)
-  ZiAP = UIvar("Zones to arm in Area A Part Set", CctsUsed)	
-  ZiBF = UIvar("Zones to arm in Area B Full Set", CctsUsed)
-  ZiBP = UIvar("Zones to arm in Area B Part Set", CctsUsed)
-
   init3()
 end
 
@@ -1102,29 +1123,48 @@ end
 
 -- Log PDUs to a file
 function texecomLogPDU(PDU,direction,msg_type)
+  luup.log('log pdu 1')
   local logfile = '/var/log/cmh/texecom_pdu.log'
   -- empty file if it reaches 250kb
+  luup.log('log pdu 2')
+
   local outf = io.open(logfile , 'a')
-  local filesize = outf:seek("end")
+    luup.log('log pdu 3')
+local filesize = outf:seek("end")
+  luup.log('log pdu 4')
+  
   outf:close()
+  luup.log('log pdu 5')
   if (filesize > 250000) then
     local outf = io.open(logfile , 'w')
     outf:write('')
     outf:close()
   end
+  luup.log('log pdu 6')
   local outf = io.open(logfile, 'a')
+  luup.log('log pdu 7')
   local mtype = " (" .. message_type .. ") "
+  luup.log('log pdu 8')
   local sep = "   "
+  luup.log('log pdu 9')
   if (retry ~= 0 and direction == "--&gt;") then
     sep = " R "
   end
+  luup.log('log pdu 10')
   outf:write(os.date('%d/%m %H:%M:%S'))
+  luup.log('log pdu 11')
   outf:write(sep)
+  luup.log('log pdu 12')
   outf:write(direction)
+  luup.log('log pdu 13')
   outf:write(mtype)
+  luup.log('log pdu 14')
   outf:write(PDU)
+  luup.log('log pdu 15')
   outf:write('\n')
+  luup.log('log pdu 16')
   outf:close()
+  luup.log('log pdu 17')
 end
 
 
@@ -1248,13 +1288,18 @@ end
 
 -- Send a message to Texecom via serial or IP
 function texecomSendPDU()
-  texecomLogPDU(PDUtoString(outgoingPDU), "--&gt;", message_type)
+  texecomLogPDU(PDUtoString(outgoingPDU), "-->", message_type)
+  luup.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 1')
   if luup.io.write(outgoingPDU) == false then
+      luup.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ F')
+
     luup.variable_set(PANEL_SID, "Status", "cant send PDU", panel_device) 
     luup.log("TEXECOM: cannot send PDU",2)
     luup.set_failure(true)
     return false
   end
+    luup.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 2')
+
 end
 
 
@@ -1738,7 +1783,7 @@ function texecomProcessPDU()
 
             local s = string.format("Z%03d", zn)
             local child = findChild(panel_device, s)	
-            luup.attr_set("name",luup.variable_get(PANEL_SID, "Cct ".. zn.. " Text", panel_device), child)
+--            luup.attr_set("name",luup.variable_get(PANEL_SID, "Cct ".. zn.. " Text", panel_device), child)
           end
           ZoneT[zn.. ":C"] =  string.format("%03d", zn)                                               -- C = Circuit Number (ie "001")
           ZoneT[zn.. ":A"] = 0                                               -- A = Circuit currently Armed by Vera (boolean) 
@@ -1761,7 +1806,7 @@ function texecomProcessPDU()
 
             local s = string.format("Z%03d", zn)
             local child = findChild(panel_device, s)	
-            luup.attr_set("name",luup.variable_get(PANEL_SID, "Cct ".. zn.. " Text", panel_device), child)
+--            luup.attr_set("name",luup.variable_get(PANEL_SID, "Cct ".. zn.. " Text", panel_device), child)
           end
           ZoneT[zn.. ":C"] =  string.format("%03d", zn)                                               -- C = Circuit Number (ie "001")
           ZoneT[zn.. ":A"] = 0                                               -- A = Circuit currently Armed by Vera (boolean) 
@@ -1779,8 +1824,8 @@ function texecomProcessPDU()
           skipByte = 1                                                                                                     -- skip the next byte as should be area assignment byte 
         end
       end
-            luup.variable_set(PANEL_SID, 'CctsUsed',  CctsUsed, panel_device) 
- --     UIvar('CctsUsed',CctsUsed)
+      luup.variable_set(PANEL_SID, 'CctsUsed',  CctsUsed, panel_device) 
+      --     UIvar('CctsUsed',CctsUsed)
     end
     message_type = "N"
     ZnSendEng()
