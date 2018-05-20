@@ -120,6 +120,12 @@ function openTab(evt, tabName) {
 			<td>Panel Engineer Code</td>
 			<td><input id="Panel Engineer Code" type="text" placeholder="Engineer Code" value="" /></td>
 		</tr>
+		
+		<tr>
+			<td>Panel Type</td>
+			<td><select id="Panel TypeDD"><option value="12">Premier Elite 12</option><option value="24">Premier Elite 24</option><option value="48">Premier Elite 48 (and above)</option></select></td>
+		</tr>
+
 		<tr>
 			<td>Grab Zone Names on Next LUUP Restart?</td>
 			<td><input id="Grab Zone Names on Next LUUP Restart (1= Yes, 0=No)CB" type="checkbox" /></td>
@@ -408,18 +414,21 @@ function saveGet(page,saveit){
 		operation('IP/SerialDD',saveit)
 		setTimeout(ipser(),50)
 		setTimeout(function(){
-		ip=''
-		if(document.getElementById('IP/SerialDD').value=='i'){
-			operation('PanelIP', saveit)
-			operation('PanelPort', saveit)			
-			ip=document.getElementById('PanelIP').value+':'+document.getElementById('PanelPort').value
-		} else{
-			ip=''
-		}
-		if(saveit==1){
-			Fipset(ip)
-		}
+      ip=''
+      if(document.getElementById('IP/SerialDD').value=='i'){
+        
+          operation('PanelIP', saveit)
+          operation('PanelPort', saveit)
+          ip=document.getElementById('PanelIP').value+':'+document.getElementById('PanelPort').value
+        
+      } else{
+        ip=''
+      }
+      if(saveit==1){
+        Fipset(ip)
+      }
 		},100)
+				operation('Panel TypeDD',saveit)
 		operation('Used Zones to be Ignored (Format: 001,002,003)',saveit)
 		operation('Unused Zones to be Added (Format: 001,002,003)',saveit)
 		operation('24 Hour Zones (NEVER disarmed by Vera)',saveit)
@@ -539,9 +548,6 @@ function hideInpDD(dd,Inp,Inp2){
 	}
 }
 saveGet(0,0)
-/*
-function Fget(k){if(k=='CctsUsed'){return '001,002,009'} else {return k}}
-*/
 </script>
 
 </body>
@@ -554,7 +560,6 @@ function Fget(varN){
 }
 function Fsave(varN,varV){
 		api.setDeviceStateVariablePersistent(devID, service, varN,varV,'ok()','nok()',false);
-//    window.alert('Saved "'+varN+'". \n(New Value: '+varV+')')
 }
 function Freloadluup(){
 dru=api.getDataRequestURL()+'?id=lu_action&serviceId=urn:micasaverde-com:serviceId:HomeAutomationGateway1&action=RunLua&Code=luup.reload()'

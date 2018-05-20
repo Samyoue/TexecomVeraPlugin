@@ -434,7 +434,6 @@ end
 -- Request access to panel. 
 -- Note that Texecom will disable access if no command is sent within 60 seconds
 function initialiseComms()
-    luup.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 0')
 
   udlCode = luup.variable_get(PANEL_SID, "Panel UDL Code", panel_device) 
   luup.variable_set(PANEL_SID, "Status", "Requesting Access- ".. udlCode, panel_device) 
@@ -887,16 +886,14 @@ end
 -- Initialise the panel and create necessary child devices
 function texecomStartup(lul_device)
   writeFile('/TexeDevNo',lul_device)
-  luup.log('TEXE 1')
   PanelConfigured = 0   	
   panel_device = lul_device
-  luup.log('TEXE p='..panel_device)
   luup.variable_set(PANEL_SID, "Status", "Initialising...", panel_device)
 
   udlCode = UIvar("Panel UDL Code", "1234")
   engCode = UIvar("Panel Engineer Code", "1234")
   grabZD =  UIvar("Grab Zone Names on Next LUUP Restart (1= Yes, 0=No)", "1")
-  handler = UIvar("Use Handler Plugin?", "1")
+  handler = UIvar("Use Handler Plugin?", "0")
 
   -- occupyLH = UIvar("LH Area Occupied EE Zones (Format: 001,002)", "")
   -- occupyRH = UIvar("RH Area Occupied EE Zones (Format: 001,002)", "")
@@ -932,12 +929,11 @@ CctsUsed=UIvar("CctsUsed",'')
   luup.variable_set(PANEL_SID, "TexecomVersion", TEXECOM_VERSION, panel_device)
   local ipAddress, trash, ipPort = string.match(luup.devices[panel_device].ip, "^([%w%.%-]+)(:?(%d-))$")
   if (ipAddress and ipPort ~= "") then
-    luup.log(string.format ("(texecomStartup) ipAddress=%s, ipPort=%s", tostring(ipAddress), tostring (ipPort)))
+    luup.log(string.format ("TEXECOM Startup ipAddress=%s, ipPort=%s", tostring(ipAddress), tostring (ipPort)))
     luup.io.open (panel_device, ipAddress, ipPort)
-    luup.log('TEXECOM STARTUP IP')
 
   else
-    luup.log("(texecomStartup) Running on Serial.")
+    luup.log("TEXECOM Startup Running on Serial.")
 
     if( luup.io.is_connected(panel_device) == false ) then
       luup.log("TEXECOM: no port for Texecom",1)
@@ -945,19 +941,16 @@ CctsUsed=UIvar("CctsUsed",'')
       return false
     end
   end
-  luup.log('TEXECOM STARTUP 1A')
   ui7Check = luup.variable_get(PANEL_SID, "UI7Check", panel_device) or ""
   if ui7Check == "" then
     luup.variable_set(PANEL_SID, "UI7Check", "false", panel_device)
     ui7Check = "false"
   end
-  luup.log('TEXECOM STARTUP 1B')
 
   if( luup.version_branch == 1 and luup.version_major == 7 and ui7Check == "false") then
     luup.variable_set(PANEL_SID, "UI7Check", "true", panel_device)
     ui7Check = "true"
   end
-  luup.log('TEXECOM STARTUP 1C')
 
   if (luup.variable_get(PANEL_SID, "MaxPartitions", panel_device) ~= nil) and (luup.variable_get(PANEL_SID, "MaxPartitions", panel_device) ~= "") then
     local max_par_string = luup.variable_get(PANEL_SID, "MaxPartitions", panel_device)
@@ -973,7 +966,6 @@ CctsUsed=UIvar("CctsUsed",'')
   else
     luup.variable_set(PANEL_SID, "MaxPartitions", max_partitions, panel_device)
   end
-  luup.log('TEXECOM STARTUP 1D')
 
   if(handler=='1')then
     HtDev=readFile('/HtDevNo')
@@ -1123,48 +1115,31 @@ end
 
 -- Log PDUs to a file
 function texecomLogPDU(PDU,direction,msg_type)
-  luup.log('log pdu 1')
   local logfile = '/var/log/cmh/texecom_pdu.log'
   -- empty file if it reaches 250kb
-  luup.log('log pdu 2')
 
   local outf = io.open(logfile , 'a')
-    luup.log('log pdu 3')
 local filesize = outf:seek("end")
-  luup.log('log pdu 4')
   
   outf:close()
-  luup.log('log pdu 5')
   if (filesize > 250000) then
     local outf = io.open(logfile , 'w')
     outf:write('')
     outf:close()
   end
-  luup.log('log pdu 6')
   local outf = io.open(logfile, 'a')
-  luup.log('log pdu 7')
   local mtype = " (" .. message_type .. ") "
-  luup.log('log pdu 8')
   local sep = "   "
-  luup.log('log pdu 9')
   if (retry ~= 0 and direction == "--&gt;") then
     sep = " R "
   end
-  luup.log('log pdu 10')
   outf:write(os.date('%d/%m %H:%M:%S'))
-  luup.log('log pdu 11')
   outf:write(sep)
-  luup.log('log pdu 12')
   outf:write(direction)
-  luup.log('log pdu 13')
   outf:write(mtype)
-  luup.log('log pdu 14')
   outf:write(PDU)
-  luup.log('log pdu 15')
   outf:write('\n')
-  luup.log('log pdu 16')
   outf:close()
-  luup.log('log pdu 17')
 end
 
 
@@ -1289,16 +1264,13 @@ end
 -- Send a message to Texecom via serial or IP
 function texecomSendPDU()
   texecomLogPDU(PDUtoString(outgoingPDU), "-->", message_type)
-  luup.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 1')
   if luup.io.write(outgoingPDU) == false then
-      luup.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ F')
+      luup.log('TEXECOM: PDU transmission failed: '..outgoingPDU)
 
     luup.variable_set(PANEL_SID, "Status", "cant send PDU", panel_device) 
-    luup.log("TEXECOM: cannot send PDU",2)
     luup.set_failure(true)
     return false
   end
-    luup.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 2')
 
 end
 
