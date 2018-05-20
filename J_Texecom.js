@@ -110,7 +110,7 @@ function openTab(evt, tabName) {
 		</tr>
 		<tr>
 			<td id="connDesc">Connection Settings:</td>
-			<td id="connSett"></td>
+			<td><vera  id="connSettI" style="width:10px"><input id="PanelIP" type="text" placeholder="eg. 192.168.1.100" value="" style="width:125px"/> : <input id="PanelPort" type="text" placeholder="eg. 10001" value="10001"  style="width:75px"/></vera><vera id="connSettS"></vera></td>
 		</tr>
 		<tr>
 			<td>Panel UDL Code</td>
@@ -346,13 +346,18 @@ document.getElementById("defaultOpen").click();
 function ipser(){
 	if (document.getElementById('IP/SerialDD').value=='i'){
 		document.getElementById('connDesc').innerHTML='Connection Settings (ip:port):'
-		document.getElementById('connSett').innerHTML='<input id="PanelIP" type="text" placeholder="eg. 192.168.1.100" value="" style="width:125px"/> : <input id="PanelPort" type="text" placeholder="eg. 10001" value="10001"  style="width:75px"/>'
-		operation('PanelIP', 0)
-		operation('PanelPort', 0)			
+		document.getElementById('connSettS').innerHTML=''
+		document.getElementById('connSettI').style.opacity=1
+		document.getElementById('connSettI').disabled=0
+
+		//operation('PanelIP', 0)
+		//operation('PanelPort', 0)			
 	}
 	else {
 		document.getElementById('connDesc').innerHTML='Connection Settings:'
-		document.getElementById('connSett').innerHTML='Goto "Apps">"Serial Port Configuration" and choose<br>the Texecom Elite Device<br>and set the following options, <br>Baud Rate: <i>19200</i>, <br>Parity: <i>None</i>, <br>Data Bits: <i>8</i>, <br>Stop Bits: <i>2</i>.'
+		document.getElementById('connSettI').style.opacity=0
+		document.getElementById('connSettI').disabled=1
+		document.getElementById('connSettS').innerHTML='<br>Goto "Apps">"Serial Port Configuration" and choose<br>the Texecom Elite Device<br>and set the following options, <br>Baud Rate: <i>19200</i>, <br>Parity: <i>None</i>, <br>Data Bits: <i>8</i>, <br>Stop Bits: <i>2</i>.'
 	}
 }
 function redownload(){
@@ -413,22 +418,19 @@ function saveGet(page,saveit){
 		operation('Grab Zone Names on Next LUUP Restart (1= Yes, 0=No)CB',saveit)
 		operation('IP/SerialDD',saveit)
 		setTimeout(ipser(),50)
-		setTimeout(function(){
-      ip=''
-      if(document.getElementById('IP/SerialDD').value=='i'){
-        
-          operation('PanelIP', saveit)
-          operation('PanelPort', saveit)
-          ip=document.getElementById('PanelIP').value+':'+document.getElementById('PanelPort').value
-        
-      } else{
-        ip=''
-      }
-      if(saveit==1){
-        Fipset(ip)
-      }
-		},100)
-				operation('Panel TypeDD',saveit)
+		operation('PanelIP', saveit)
+		operation('PanelPort', saveit)
+		ip=document.getElementById('PanelIP').value+':'+document.getElementById('PanelPort').value
+		if(saveit==1){
+			if (document.getElementById('IP/SerialDD').value=='i'){
+				Fipset(ip)
+			}
+			else{
+				Fipset('')
+			}
+			
+		}
+		operation('Panel TypeDD',saveit)
 		operation('Used Zones to be Ignored (Format: 001,002,003)',saveit)
 		operation('Unused Zones to be Added (Format: 001,002,003)',saveit)
 		operation('24 Hour Zones (NEVER disarmed by Vera)',saveit)
@@ -548,6 +550,9 @@ function hideInpDD(dd,Inp,Inp2){
 	}
 }
 saveGet(0,0)
+
+//function Fget(k){if(k=='CctsUsed'){return '001,002,009'} else {return k}}
+
 </script>
 
 </body>
