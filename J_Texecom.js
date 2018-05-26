@@ -98,69 +98,69 @@ function openTab(evt, tabName) {
 <!-- Tab content -->
 <div id="Panel" class="tabcontent">
 	<h3>Panel Setup</h3>
-	<table class="varTable">
+	<table class="varTable" >
 		<tr>
-			<td>Plugin Version</td>
+			<td style="width: 277px">Plugin Version</td>
 			<td id="TexecomVersion"></td>
 		</tr>
 
 		<tr>
-			<td>Connect Via:</td>
+			<td style="width: 277px">Connect Via:</td>
 			<td><select id="IP/SerialDD" onchange="ipser()"><option value="s">Serial</option><option value="i">IP</option></select></td>
 		</tr>
 		<tr>
-			<td id="connDesc">Connection Settings:</td>
+			<td id="connDesc" style="width: 277px">Connection Settings:</td>
 			<td><vera  id="connSettI" style="width:10px"><input id="PanelIP" type="text" placeholder="eg. 192.168.1.100" value="" style="width:125px"/> : <input id="PanelPort" type="text" placeholder="eg. 10001" value="10001"  style="width:75px"/></vera><vera id="connSettS"></vera></td>
 		</tr>
 		<tr>
-			<td>Panel UDL Code</td>
+			<td style="width: 277px">Panel UDL Code</td>
 			<td><input id="Panel UDL Code" type="text" placeholder="UDL Code" value="" /></td>
 		</tr>
 		<tr>
-			<td>Panel Engineer Code</td>
+			<td style="width: 277px">Panel Engineer Code</td>
 			<td><input id="Panel Engineer Code" type="text" placeholder="Engineer Code" value="" /></td>
 		</tr>
 		
 		<tr>
-			<td>Panel Type</td>
+			<td style="width: 277px">Panel Type</td>
 			<td><select id="Panel TypeDD"><option value="12">Premier Elite 12</option><option value="24">Premier Elite 24</option><option value="48">Premier Elite 48 (and above)</option></select></td>
 		</tr>
 
 		<tr>
-			<td>Grab Zone Names on Next LUUP Restart?</td>
+			<td style="width: 277px">Grab Zone Names on Next LUUP Restart?</td>
 			<td><input id="Grab Zone Names on Next LUUP Restart (1= Yes, 0=No)CB" type="checkbox" /></td>
 		</tr>
 		<tr>
-			<td>Used Zones <strong>NOT </strong>to be Created</td>
+			<td style="width: 277px">Used Zones <strong>NOT </strong>to be Created<br><button onclick='populate("Used Zones to be Ignored (Format: 001,002,003)")'>Populate with all circuits used</button></td>
 			<td><textarea id="Used Zones to be Ignored (Format: 001,002,003)" cols="20" rows="1" style="width:215px;height:50px"  placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 
 		<tr>
-			<td><strong>Unused</strong> Zones to be Created</td>
+			<td style="width: 277px"><strong>Unused</strong> Zones to be Created<br><button onclick='populate("Unused Zones to be Added (Format: 001,002,003)")'>Populate with all circuits used</button></td>
 			<td><textarea id="Unused Zones to be Added (Format: 001,002,003)" cols="20" rows="1" style="width:215px;height:50px"  placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
-			<td>24 Hour Zones (NEVER disarmed by Vera)</td>
+			<td style="width: 277px">24 Hour Zones (NEVER disarmed by Vera)<br><button onclick='populate("24 Hour Zones (NEVER disarmed by Vera)")'>Populate with all circuits used</button></td>
 			<td><textarea id="24 Hour Zones (NEVER disarmed by Vera)" cols="20" rows="1" style="width:215px;height:50px"  placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
-			<td>Number of Areas</td>
+			<td style="width: 277px">Number of Areas</td>
 			<td><select id="MaxPartitionsDD" onchange="hideInpDD('MaxPartitionsDD','Zones to arm in Area B Full Set','Zones to arm in Area B Part Set')"><option value="1">1 Area</option><option value="2">2 Areas</option></select></td>
 		</tr>
 		<tr>
-			<td>Zones to arm in Vera when Area A Full Set</td>
+			<td style="width: 277px">Zones to arm in Vera when Area A Full Set<br><button onclick='populate("Zones to arm in Area A Full Set")'>Populate with all circuits used</button></td>
 			<td><textarea id="Zones to arm in Area A Full Set" cols="20" rows="1" style="width:215px;height:50px" placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
-			<td>Zones to arm in Vera when Area A Part Set</td>
+			<td style="width: 277px">Zones to arm in Vera when Area A Part Set<br><button onclick='populate("Zones to arm in Area A Part Set")'>Populate with all circuits used</button></td>
 			<td><textarea id="Zones to arm in Area A Part Set" cols="20" rows="1" style="width:215px;height:50px" placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
-			<td>Zones to arm in Vera when Area B Full Set</td>
+			<td style="width: 277px">Zones to arm in Vera when Area B Full Set<br><button onclick='populate("Zones to arm in Area B Full Set")'>Populate with all circuits used</button></td>
 			<td><a  id="txtBf"></a><textarea id="Zones to arm in Area B Full Set" cols="20" rows="1" style="width:215px;height:50px" placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 		<tr>
-			<td>Zones to arm in Vera when Area B Part Set</td>
+			<td style="width: 277px">Zones to arm in Vera when Area B Part Set<br><button onclick='populate("Zones to arm in Area B Part Set")'>Populate with all circuits used</button></td>
 			<td><a id="txtBp"></a><textarea id="Zones to arm in Area B Part Set" cols="20" rows="1" style="width:215px;height:50px" placeholder="Format: xxx,yyy,zzz eg. 001,002,003" value="" ></textarea></td>
 		</tr>
 	</table>
@@ -357,8 +357,11 @@ function ipser(){
 		document.getElementById('connDesc').innerHTML='Connection Settings:'
 		document.getElementById('connSettI').style.opacity=0
 		document.getElementById('connSettI').disabled=1
-		document.getElementById('connSettS').innerHTML='<br>Goto "Apps">"Serial Port Configuration" and choose<br>the Texecom Elite Device<br>and set the following options, <br>Baud Rate: <i>19200</i>, <br>Parity: <i>None</i>, <br>Data Bits: <i>8</i>, <br>Stop Bits: <i>2</i>.'
+		document.getElementById('connSettS').innerHTML='<br>Goto "Apps">"Serial Port Configuration" and choose the Texecom Elite Device and set the following options: <br>Baud Rate: <i>19200</i>, <br>Parity: <i>None</i>, <br>Data Bits: <i>8</i>, <br>Stop Bits: <i>2</i>.'
 	}
+}
+function populate(id){
+	document.getElementById(id).value=Fget('CctsUsed')
 }
 function redownload(){
 	document.getElementById('Cust Logo Download Location').value='redownload'

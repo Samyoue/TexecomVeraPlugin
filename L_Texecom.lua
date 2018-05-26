@@ -473,18 +473,18 @@ function getZoneProg()
     luup.variable_set(PANEL_SID, "Status", "zp wait...".. message_type, panel_device) 
   else
     message_type = "ZP"
-    luup.variable_set(PANEL_SID, "Status", "zp SENDg...", panel_device) 
+  --  luup.variable_set(PANEL_SID, "Status", "zp SENDg...", panel_device) 
     local panelType = luup.variable_get(PANEL_SID, "Panel Type", panel_device) 
     if(panelType==nil)then
       luup.variable_set(PANEL_SID, "Panel Type", "24", panel_device) 
       panelType ='24'
     end
-    local panelType2=string.format('%X',panelType)
-    if(string.len(panelType2)==1)then
-      panelType2='0'..panelType2
-    end
+--   local panelType2=string.format('%02X',panelType)
+    panelByte=string.char(panelType)
+    luup.variable_set(PANEL_SID, "Status", "zp SENDg..."..panelType, panel_device) 
 
-    panelByte=string.char(panelType2)
+--    panelByte=string.char('0x'..panelType-1)
+ 
     outgoingPDU = string.char(0x5C, 0x51, 0x00)..panelByte..string.char(0x2F) --0C=12, 18=24, 30=48, (58=88 but 50=max)
     texecomSendPDU()
   end
@@ -732,7 +732,7 @@ end
 
 -- Implement Zone Bypass/Un-bypass requests (UI5) or arm/disarm requests (UI7)
 function setBypass(device, newArmedValue)
-  --[[	if ui7Check == "false" then
+  	if ui7Check == "false" then
 			local command = ""
 			local zone = luup.attr_get("altid", device)
 			-- texecomLog(zone)
@@ -756,7 +756,7 @@ function setBypass(device, newArmedValue)
    		 	QoutgoingPDU = string.char(0x5C) .. string.char(command) .. string.char(zone) .. string.char(0x2F)
     	else
     		luup.variable_set(SECURITY_SID, "Armed", newArmedValue, device)
-    	end]]--
+    	end
 end
 
 -- Arm specified Vera zone devices when partition is armed
@@ -1552,7 +1552,7 @@ function texecomProcessPDU()
           if ((POch4 == 1) or (POch4 == "1")) then
             notifyUserP("Full Set" ,"0","4")
           end
---							armZones(1, 1) --arm selected zones in area A (1), full set (1)
+							armZones(1, 1) --arm selected zones in area A (1), full set (1)
         end
         luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Full Armed") , partition_device1)
         luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 2, partition_device1)
@@ -1566,7 +1566,7 @@ function texecomProcessPDU()
           if ((POch4 == 1) or (POch4 == "1")) then
             notifyUserP("Part Set" ,"0","4")			
           end
---							armZones(1, 2) --arm selected zones in area A (1), full set (2)
+							armZones(1, 2) --arm selected zones in area A (1), full set (2)
         end
         luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Part Armed") , partition_device1)
         luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 1, partition_device1)
@@ -1579,7 +1579,7 @@ function texecomProcessPDU()
           if ((POch4 == 1) or (POch4 == "1")) then
             notifyUserP("Disarmed" ,"0","4")
           end
---							disarmZones(1)
+							disarmZones(1)
         end
         luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Ready") , partition_device1)
         luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 0, partition_device1)
@@ -1592,7 +1592,7 @@ function texecomProcessPDU()
           if ((POch4 == 1) or (POch4 == "1")) then
             notifyUserP("Disarmed" ,"0","4")
           end
---							disarmZones(1)
+							disarmZones(1)
         end
         luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Not Ready") , partition_device1)
         luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 0, partition_device1)
@@ -1604,7 +1604,7 @@ function texecomProcessPDU()
       if (max_partitions == 2) then
         if (bitAnd(partitionFullStatus, 0x02) ~= 0) then
           if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device2) ~= 0) then
---								armZones(2, 1) --arm selected zones in area B (2), full set (1)
+								armZones(2, 1) --arm selected zones in area B (2), full set (1)
           end
           luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Full Armed") , partition_device2)
           luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 2, partition_device2)
@@ -1614,7 +1614,7 @@ function texecomProcessPDU()
           partition2_armed = 1
         elseif (bitAnd(partitionPartStatus, 0x02) ~= 0) then
           if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device2) ~= 1) then
---								armZones(2, 2) --arm selected zones in area B (2), Part set (1)
+								armZones(2, 2) --arm selected zones in area B (2), Part set (1)
           end
           luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Part Armed") , partition_device2)
           luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 1, partition_device2)
@@ -1624,7 +1624,7 @@ function texecomProcessPDU()
           partition2_armed = 1
         elseif (bitAnd(partitionReadyStatus, 0x02) ~= 0) then
           if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device2) ~= 0) then
---								disarmZones(2) --disarm selected zones in area B (2)
+								disarmZones(2) --disarm selected zones in area B (2)
           end
           luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Ready") , partition_device2)
           luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 0, partition_device2)
@@ -1634,7 +1634,7 @@ function texecomProcessPDU()
           partition2_armed = 0
         else
           if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device2) ~= 0) then
---								disarmZones(2) --disarm selected zones in area B (2)
+								disarmZones(2) --disarm selected zones in area B (2)
           end
           luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Not Ready") , partition_device2)
           luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 0, partition_device2)
@@ -1769,7 +1769,7 @@ function texecomProcessPDU()
           zn = zn +1                                                                                                        -- increase Zone Number
           skipByte = 1                                                                                                     -- skip the next byte as should be area assignment byte 
         elseif (string.find(addUnusedCcts,PDUtoString(string.sub(incomingPDU, i, i)))~=nil) then --if the current unused zone is to be added                                                                                 -- if this byte is to be skipped (area assignment) make sure next byte isn't skipped
-          ZoneT[zn .. ":T"] =  PDUtoString(string.sub(incomingPDU, i, i) )               -- T = Type code (01 = ee1, 03 = guard) 
+          ZoneT[zn .. ":T"] =  '03'--PDUtoString(string.sub(incomingPDU, i, i) )               -- T = Type code (01 = ee1, 03 = guard) 
           ZoneT[zn.. ":P"] =  PDUtoString(string.sub(incomingPDU, i+1, i+1) )      -- P = Partition that zone is assigned to
           if(luup.variable_get(PANEL_SID, "Cct ".. zn.. " Text", panel_device) == nil) then -- cct text not previously been gathered from the panel
             luup.variable_set(PANEL_SID, "Cct ".. zn.. " Text",  "(".. zn.. ")", panel_device) 
