@@ -94,6 +94,8 @@ function openTab(evt, tabName) {
 	Pushover Notifications</button>
 	<button class="tablinks" onclick="openTab(event, 'Texting')">
 	Text Messaging</button>
+	<button class="tablinks" onclick="openTab(event, 'Emailing')">
+	Emails</button>
 	</div></div>
 <!-- Tab content -->
 <div id="Panel" class="tabcontent">
@@ -209,6 +211,11 @@ Uses the <a href="https://www.pushover.net" target="_blank">Pushover</a> Service
  <hr>	
 	<table class="varTable">
 		<tr>
+			<td>Use PushOver Notifications?</td>
+			<td><input id="usePOCB" type="checkbox"/></td>
+		</tr>
+
+		<tr>
 			<td>PushOver App Token</td>
 			<td><input id="PushOver App Token" type="text"  placeholder="PushOver App Token" style="width:215px" maxlength="30" value=""/></td>
 		</tr>
@@ -259,7 +266,7 @@ Uses the <a href="https://www.pushover.net" target="_blank">Pushover</a> Service
 		</tr>
 		<tr>
 			<td>Set/Unset Notifications</td>
-			<td><input id="PushOver Set/Unset Notifications (1 = Yes, 0 = No)CB" type="checkbox"/></td>
+			<td><input id="nPOch4CB" type="checkbox"/></td>
 		</tr>
 		<tr>
 			<td>Set/Unset Sound</td>
@@ -292,7 +299,7 @@ Uses the <a href="https://www.pushover.net" target="_blank">Pushover</a> Service
 		</tr>
 		<tr>
 			<td>PushOver Notification on Vera Restart</td>
-			<td><input id="PushOver Notification on Vera Restart (1 = Yes, 0 = No)CB" type="checkbox"/></td>
+			<td><input id="nPOch0CB" type="checkbox"/></td>
 		</tr>
 	</table>
 	<hr>
@@ -315,12 +322,76 @@ Uses the <a href="https://www.pushover.net" target="_blank">Pushover</a> Service
 <div id="Texting" class="tabcontent">
 	<h3>Text Messaging</h3>
 Uses the <a href="http://www.clickatell.com" target="_blank">Clickatell</a> Service. <br>You must have a (free) account	and have registered at least one phone number.
- <hr><table class="varTable">
+ <hr>
+	<table class="varTable">
+		
 		<tr>
-			<td>To be added...</td>
-			<td><input id="Admin Access Code" placeholder="" /></td>
+			<td>Use Text Messaging Notifications?</td>
+			<td><input id="useTXTCB" type="checkbox"/></td>
 		</tr>
-</table>
+		<tr>
+			<td>Clickatell App Key</td>
+			<td><input id="nTXTappkey" placeholder="Clickatell App Key" type="text" /></td>
+		</tr>
+		<tr>
+			<td>Vera Restart Notifications</td>
+			<td><input id="nTXTch0CB" type="checkbox"/></td>
+		</tr>
+
+		<tr>
+			<td>Set/Unset Notifications</td>
+			<td><input id="nTXTch4CB" type="checkbox"/></td>
+		</tr>
+		<tr>
+			<td>Text Message Header</td>
+			<td><input id="nTXThead" placeholder="Header for Text Message" type="text" /></td>
+		</tr>
+<tr><td colspan="2">UK Phone Numbers to Text: <font size="1">(international option coming soon)</font></td></tr>
+	</table>
+		<table class="varTable">
+		
+
+		<tr id="nTXTnums">
+			<td><button onclick="del(1,'text')">X</button></td>
+			<td><input id="text1a" placeholder="Phone Number 1" style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(2,'text')">X</button></td>
+			<td><input id="text2a" placeholder="Phone Number 2"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(3,'text')">X</button></td>
+			<td><input id="text3a" placeholder="Phone Number 3"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(4,'text')">X</button></td>
+			<td><input id="text4a" placeholder="Phone Number 4"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(5,'text')">X</button></td>
+			<td><input id="text5a" placeholder="Phone Number 5"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(6,'text')">X</button></td>
+			<td><input id="text6a" placeholder="Phone Number 6"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(7,'text')">X</button></td>
+			<td><input id="text7a" placeholder="Phone Number 7"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(8,'text')">X</button></td>
+			<td><input id="text8a" placeholder="Phone Number 8"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(9,'text')">X</button></td>
+			<td><input id="text9a" placeholder="Phone Number 9" style="width:360px" /></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(10,'text')">X</button></td>
+			<td><input id="text10a" placeholder="Phone Number 10" style="width:360px" /></td>
+		</tr>
+	</table>
 	<hr>
 	<table width="500px">
 		<tr align="center">
@@ -331,6 +402,111 @@ Uses the <a href="http://www.clickatell.com" target="_blank">Clickatell</a> Serv
 		</tr>
 		<tr align="center">
 			<td><button onclick="saveGet(4,0)" style="width: 120px">Refresh Page
+			</button></td>
+			<td><button onclick="saveGet(0,0)" style="width: 120px"><b>Refresh All</b>
+			</button></td>
+		</tr>
+	</table>
+</div>
+
+<div id="Emailing" class="tabcontent">
+	<h3>Emails</h3>
+Uses the <a href="https://www.smtp2go.com/" target="_blank">SMTP2GO</a> Service. <br>You must sign up for a (free) account.
+<hr> 
+	<table class="varTable">
+		
+		<tr>
+			<td>Use Email Notifications</td>
+			<td><input id="useEMCB" type="checkbox"/></td>
+		</tr>
+		<tr>
+			<td>Your email address</td>
+			<td><input id="nEMf" placeholder="Your email address" type="text" /></td>
+		</tr>
+
+		<tr>
+			<td>SMTP2GO Username</td>
+			<td><input id="nEMusr" placeholder="SMTP2GO Username" type="text" /></td>
+		</tr>
+
+		<tr>
+			<td>SMTP2GO Password</td>
+			<td><input id="nEMpw" placeholder="SMTP2GO Password" type="text" /></td>
+		</tr>
+		<tr>
+			<td>Vera Restart Notifications</td>
+			<td><input id="nEMch0CB" type="checkbox"/></td>
+		</tr>
+
+		<tr>
+			<td>Set/Unset Notifications</td>
+			<td><input id="nEMch4CB" type="checkbox"/></td>
+		</tr>
+		<tr>
+			<td>Email Message Subject</td>
+			<td><input id="nEMsubj" placeholder="Subject for Emails" type="text" /></td>
+		</tr>
+
+		<tr>
+			<td>Email Message Header <font size="1">(HTML tags <b>supported</b>)</font></td>
+			<td><input id="nEMhead" placeholder="Header for Emails" type="text" /></td>
+		</tr>
+	</table>
+<vera style="text-align:center">Email addresses to notify:</vera>
+	<table class="varTable">
+		
+
+		<tr id="nEMt">
+			<td><button onclick="del(1,'email')">X</button></td>
+			<td><input id="email1a" placeholder="Email Recipient 1" style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(2,'email')">X</button></td>
+			<td><input id="email2a" placeholder="Email Recipient 2"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(3,'email')">X</button></td>
+			<td><input id="email3a" placeholder="Email Recipient 3"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(4,'email')">X</button></td>
+			<td><input id="email4a" placeholder="Email Recipient 4"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(5,'email')">X</button></td>
+			<td><input id="email5a" placeholder="Email Recipient 5"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(6,'email')">X</button></td>
+			<td><input id="email6a" placeholder="Email Recipient 6"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(7,'email')">X</button></td>
+			<td><input id="email7a" placeholder="Email Recipient 7"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(8,'email')">X</button></td>
+			<td><input id="email8a" placeholder="Email Recipient 8"  style="width:360px"/></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(9,'email')">X</button></td>
+			<td><input id="email9a" placeholder="Email Recipient 9" style="width:360px" /></td>
+		</tr>
+		<tr>
+			<td><button onclick="del(10,'email')">X</button></td>
+			<td><input id="email10a" placeholder="Email Recipient 10" style="width:360px" /></td>
+		</tr>
+	</table>
+	<hr>
+	<table width="500px">
+		<tr align="center">
+			<td><button onclick="saveGet(5,1)" style="width: 120px">Save Page
+			</button></td>
+			<td><button onclick="saveGet(0,1)" style="width: 120px"><b>Save All</b>
+			</button></td>
+		</tr>
+		<tr align="center">
+			<td><button onclick="saveGet(5,0)" style="width: 120px">Refresh Page
 			</button></td>
 			<td><button onclick="saveGet(0,0)" style="width: 120px"><b>Refresh All</b>
 			</button></td>
@@ -472,6 +648,7 @@ function saveGet(page,saveit){
 		}
 	}	
 	if(page==3 || page==0){//pushover or all
+		operation('usePOCB',saveit)
 		operation('PushOver App Token',saveit)
 		operation('PushOver User Token',saveit)
 		operation('PushOver Message Title',saveit)
@@ -479,13 +656,65 @@ function saveGet(page,saveit){
 		operation('PushOver - Alarm Message Repeats Every (sec)',saveit)
 		operation('PushOver - Alarm Stops Retrying After: (min)',saveit)
 		operation('PushOver - Device Token For Alarm Notifications (Blank = All Devices With User Token)',saveit)
-		operation('PushOver Set/Unset Notifications (1 = Yes, 0 = No)CB',saveit)
+		operation('nPOch4CB',saveit)
 		operation('PushOver Set/Unset SoundDD',saveit)
 		operation('PushOver - Device To Receive Set/Unset Notifications (Blank = All With User Token)',saveit)
-		operation('PushOver Notification on Vera Restart (1 = Yes, 0 = No)CB',saveit)
+		operation('nPOch0CB',saveit)
 	}
-	if(page==4 || page==0){//Texting or all
-	
+	if(page==4 || page==0){//text msging or all
+		operation('useTXTCB',saveit)
+		operation('nTXTch0CB',saveit)
+		operation('nTXTch4CB',saveit)
+		operation('nTXTappkey',saveit)
+		operation('nTXThead',saveit)
+		if(saveit==0){//loading
+			var txtnums=Fget('nTXTnums')
+		    var res = txtnums.split("<");
+		    for (i = 1; i < res.length; i++) {
+			    res[i]=res[i].substr(0,res[i].length-1)
+    			document.getElementById('text'+i+'a').value=res[i]
+    		}
+    	} else{//saving
+    		r=''
+    		for (i = 1; i <= 10; i++) {
+			    if(document.getElementById('text'+i+'a').value!=''){
+			    	r+='<'+document.getElementById('text'+i+'a').value+'>'
+			    }
+
+    		}
+    		document.getElementById('nTXTnums').value=r
+ 			operation('nTXTnums',1)
+       	}
+	}
+
+	if(page==5 || page==0){//text msging or all
+		operation('useEMCB',saveit)
+		operation('nEMch0CB',saveit)
+		operation('nEMch4CB',saveit)
+		operation('nEMf',saveit)
+		operation('nEMhead',saveit)
+		operation('nEMsubj',saveit)
+
+		operation('nEMusr',saveit)
+		operation('nEMpw',saveit)
+		if(saveit==0){//loading
+			var txtnums=Fget('nEMt')
+		    var res = txtnums.split("<");
+		    for (i = 1; i < res.length; i++) {
+			    res[i]=res[i].substr(0,res[i].length-1)
+    			document.getElementById('email'+i+'a').value=res[i]
+    		}
+    	} else{//saving
+    		r=''
+    		for (i = 1; i <= 10; i++) {
+			    if(document.getElementById('email'+i+'a').value!=''){
+			    	r+='<'+document.getElementById('email'+i+'a').value+'>'
+			    }
+
+    		}
+    		document.getElementById('nEMt').value=r
+ 			operation('nEMt',1)
+       	}
 	}
 	if(saveit){
 		if (confirm('Restart Luup?')) {
@@ -554,6 +783,10 @@ function hideInpDD(dd,Inp,Inp2){
 }
 saveGet(0,0)
 
+function del(c,t){
+	document.getElementById(t+c+"a").value=""
+	document.getElementById(t+c+"b").value=""
+}
 //function Fget(k){if(k=='CctsUsed'){return '001,002,009'} else {return k}}
 
 </script>

@@ -85,10 +85,21 @@ local restartCount			=	0
 local okRestart 			=	1
 local NumOfCcts 			=	""
 local HtDev         = 0
+
+local hexToBinArr={ ["0"]="0000", ["1"]="0001", ["2"]="0010", ["3"]="0011", ["4"]="0100", ["5"]="0101", ["6"]="0110", ["7"]="0111", ["8"]="1000", ["9"]="1001", ["A"]="1010", ["B"]="1011", ["C"]="1100", ["D"]="1101", ["E"]="1110", ["F"]="1111", [' ']=''}
+local sysFlagArr={'Confirm Devices','Engineer Working','Panel Lid Tamper','Auxiliary Tamper','Bell Tamper','Auxiliary Fuse Blown','Mains Power Off','ATS Path Fault','Coms Failed','Fully Armed','System Open','Courtesy Light','Battery Test On','Battery Fault','Bell Fuse Blown','Service Required','Custom 1 Stage B','Custom 1 Stage A','Confirmed Alarm','UDL Enabled','UDL Call Active','UDL Lockout','Coms Active','Coms Successful','Custom 3 Stage A','Radio-Pad Lost','No Radio-Pad Signal','Radio-Pad Successful','Radio-Pad Failed','Custom 2 Stage A or B','Custom 2 Stage B','Custom 2 Stage A','Com 1 No Signal','Com 2 Fault','Com 1 Fault','Custom 4 Stage A or B','Custom 4 Stage B','Custom 4 Stage A','Custom 3 Stage A or B','Custom 3 Stage B','CIE Fault','No ATS Available','ATS Remote Test','Detector Test','Radio RX Tamper','Radio Jamming','Coms Fault','Com 2 No Signal','IP Path Fault','Com 3 Power On','Com 2 Power On','Com 1 Power On','PSU Mains Fault','WD Test Active','PSU Battery Fault','PSU Fuse Blown','','','','','','Charger Fault','PS Failure','Low Fob Battery'}
+
 PANEL_SID					=	"urn:micasaverde-com:serviceId:TexecomAlarmPanel1"
 PARTITION_SID				=	"urn:micasaverde-com:serviceId:AlarmPartition2"
 SECURITY_SID 				=	"urn:micasaverde-com:serviceId:SecuritySensor1"
 SWITCH_SID					=	"urn:upnp-org:serviceId:SwitchPower1"
+
+
+--FOR email reports:
+local smtp = require("socket.smtp")
+local mime = require("mime")
+local ltn12 = require("ltn12")
+
 ------------------------------------------------------------------------------------
 -----------------------REQUIRED FOR VIRTUAL KEYPAD------------------------ 
 ------------------------------------------------------------------------------------
@@ -144,7 +155,30 @@ local POlastCh4	= 0
 ----------------------------------------------------------------------------------------
 ---------------------------------UTILITY FUNCTIONS---------------------------------
 -----------------------------------------------------------------------------------------
-
+function sysFlagDecode(pdu) 
+  local res=''
+--first convert to binary
+  for i=1,string.len(pdu) do
+    if(hexToBinArr[string.sub(pdu,i,i)]~=nil)then
+      res= res..hexToBinArr[string.sub(pdu,i,i)]
+    end
+  end
+--then check the '1' bits against the array
+  sysFlags=''
+  for i=1,string.len(res) do
+    if(string.find(string.sub(res,i,i),'1'))then
+      sysFlags=sysFlags..', '..(sysFlagArr[i])
+    end
+  end
+  sysFlags=string.sub(sysFlags,3)
+  if(HtDev~=0)then
+    if(luup.variable_get("urn:samyoue-com:serviceId:HomeTouch1", "TexeSysFlags",HtDev) ~=sysFlags)then
+      luup.call_action("urn:samyoue-com:serviceId:HomeTouch1","HEvent",{cat='16',detail=sysFlags},HtDev)
+    end
+  end
+  luup.variable_set(PANEL_SID, "SysFlags", sysFlags, panel_device) 
+  return sysFlags
+end
 -- Utility functions for bitwise operations:
 --	
 -- bitMask(val, pos): return true if a bit is set, false if clear.
@@ -288,8 +322,26 @@ end
 function dispatcher2()
   --USED IN TESTING TO TEMP DISABLE DISPATCHER (IGNORE)
 end
+--[[
+0=extra
+1=area
+3=op
+5=displ
+7=volt
+--
+0=extra
+1/5/9/13=area
+3=op
+5=area
+7=displ
+9=area
+11=sys
+13=area
+15=volt
+
+]]
 function dispatcher()
-  if (nextOperation == 1) then
+  if (nextOperation == 1 or nextOperation == 5 or nextOperation == 9 or nextOperation == 13) then
     nextOperation = nextOperation + 1
     luup.variable_set(PANEL_SID, "Status", "Getting Area Status", panel_device) 
 --		getZoneStatus()
@@ -303,12 +355,17 @@ function dispatcher()
     else
       getZoneStatus()
     end
-  elseif (nextOperation == 5) then
+  elseif (nextOperation == 7) then
     nextOperation = nextOperation + 1
     luup.variable_set(PANEL_SID, "Status", "Getting Display ", panel_device) 
     getKeypad()
 
-  elseif (nextOperation == 7) then
+  elseif (nextOperation == 11) then
+    nextOperation = nextOperation + 1
+    luup.variable_set(PANEL_SID, "Status", "Getting Sys Flags", panel_device) 
+    getSysFlag()
+
+  elseif (nextOperation == 15) then
     nextOperation = nextOperation + 1
     luup.variable_set(PANEL_SID, "Status", "Getting Voltages etc", panel_device) 
     getVolts()
@@ -319,7 +376,7 @@ function dispatcher()
   else
     nextOperation = nextOperation + 1
     luup.variable_set(PANEL_SID, "Status", "Getting Zone Statuses", panel_device) 
-    if (nextOperation > 8) then  -- loop back to start (dont include "extra command" in normal poll loop)
+    if (nextOperation > 16) then  -- loop back to start (dont include "extra command" in normal poll loop)
       nextOperation = 1
       luup.variable_set(PANEL_SID, "Status", "Polling Cycle", panel_device) 
     end
@@ -355,6 +412,20 @@ function getVolts()
     luup.call_timer("dispatcher", 1,'1','', "")
   end
 end
+
+
+-- Send a message to panel to get system voltages etc
+function getSysFlag()
+  if (message_type == "N") then
+    message_type = "SF"
+    outgoingPDU = string.char(0x5C, 0x53, 0x00, 0x08, 0x2F)
+    texecomSendPDU()
+  else
+    luup.call_timer("dispatcher", 1,'1','', "")
+  end
+end
+
+
 
 -- Send a message to panel to get zone status
 function getZoneStatus()
@@ -420,6 +491,10 @@ function UIvar(name, default, service, device)
 
 end
 
+function getV(name, service, device)
+  return luup.variable_get(service or PANEL_SID, name, device or tonumber(panel_device))
+end
+
 -- Send a message to panel to get panel details (ID and firmware version)
 function getPanelDetails()
   if (message_type == "N") then
@@ -446,7 +521,7 @@ function initialiseComms()
   else
     texecomSendPDU()
   end
-  
+
 end
 
 -- Set panel time to Vera time at startup then on request 
@@ -473,7 +548,7 @@ function getZoneProg()
     luup.variable_set(PANEL_SID, "Status", "zp wait...".. message_type, panel_device) 
   else
     message_type = "ZP"
-  --  luup.variable_set(PANEL_SID, "Status", "zp SENDg...", panel_device) 
+    --  luup.variable_set(PANEL_SID, "Status", "zp SENDg...", panel_device) 
     local panelType = luup.variable_get(PANEL_SID, "Panel Type", panel_device) 
     if(panelType==nil)then
       luup.variable_set(PANEL_SID, "Panel Type", "24", panel_device) 
@@ -484,7 +559,7 @@ function getZoneProg()
     luup.variable_set(PANEL_SID, "Status", "zp SENDg..."..panelType, panel_device) 
 
 --    panelByte=string.char('0x'..panelType-1)
- 
+
     outgoingPDU = string.char(0x5C, 0x51, 0x00)..panelByte..string.char(0x2F) --0C=12, 18=24, 30=48, (58=88 but 50=max)
     texecomSendPDU()
   end
@@ -685,6 +760,14 @@ function toggleOcc(ozone)
   end	           
 end]]
 
+function PCop(id,state)
+  luup.log(id)
+  local child = findChild(panel_device, id)	
+
+  luup.variable_set(SWITCH_SID, "Status", state, child)
+end
+
+
 -- Check to see which zones are Armed by Vera
 function checkZonesArmed()
   for i=1, last_zone do 
@@ -732,31 +815,31 @@ end
 
 -- Implement Zone Bypass/Un-bypass requests (UI5) or arm/disarm requests (UI7)
 function setBypass(device, newArmedValue)
-  	if ui7Check == "false" then
-			local command = ""
-			local zone = luup.attr_get("altid", device)
-			-- texecomLog(zone)
-			zone = string.sub(zone, 2)
-			zone = "0x" .. string.format("%X", zone)
-			if (newArmedValue == "0") then
-				command = "0x42"
-				ZoneT[zone.. ":A"] = 0
-			else
-				command = "0x55"
-				ZoneT[zone.. ":A"] = 1
-			end
-			local retries = 0
-			while (message_type ~= "N") do
-				luup.sleep(500)
-				retries = retries + 1
-				if retries > 3 then break end
-			end
-			QnextOperation=1
-   		 	Qmessage_type="B"
-   		 	QoutgoingPDU = string.char(0x5C) .. string.char(command) .. string.char(zone) .. string.char(0x2F)
-    	else
-    		luup.variable_set(SECURITY_SID, "Armed", newArmedValue, device)
-    	end
+  if ui7Check == "false" then
+    local command = ""
+    local zone = luup.attr_get("altid", device)
+    -- texecomLog(zone)
+    zone = string.sub(zone, 2)
+    zone = "0x" .. string.format("%X", zone)
+    if (newArmedValue == "0") then
+      command = "0x42"
+      ZoneT[zone.. ":A"] = 0
+    else
+      command = "0x55"
+      ZoneT[zone.. ":A"] = 1
+    end
+    local retries = 0
+    while (message_type ~= "N") do
+      luup.sleep(500)
+      retries = retries + 1
+      if retries > 3 then break end
+    end
+    QnextOperation=1
+    Qmessage_type="B"
+    QoutgoingPDU = string.char(0x5C) .. string.char(command) .. string.char(zone) .. string.char(0x2F)
+  else
+    luup.variable_set(SECURITY_SID, "Armed", newArmedValue, device)
+  end
 end
 
 -- Arm specified Vera zone devices when partition is armed
@@ -902,7 +985,7 @@ function texecomStartup(lul_device)
   ignoreCcts = UIvar("Used Zones to be Ignored (Format: 001,002,003)", "")
   addUnusedCcts = UIvar("Unused Zones to be Added (Format: 001,002,003)", "")
   ZntD = UIvar("24 Hour Zones (NEVER disarmed by Vera)", "")
-CctsUsed=UIvar("CctsUsed",'')
+  CctsUsed=UIvar("CctsUsed",'')
   POapp =  UIvar("PushOver App Token", "")
   POuser =  UIvar("PushOver User Token", "")
   POtitle = UIvar("PushOver Message Title", "Texecom Alarm System")
@@ -914,12 +997,28 @@ CctsUsed=UIvar("CctsUsed",'')
   POch4sound = UIvar("PushOver Set/Unset Sound", "pushover")
   POdevCh4 = UIvar("PushOver - Device To Receive Set/Unset Notifications (Blank = All With User Token)", "")
   POrestart = UIvar("PushOver Notification on Vera Restart (1 = Yes, 0 = No)", "1")
+  UIvar('nTXThead','Texecom Alarm System (Vera Plugin)')
+  UIvar('nTXTappkey','')
+  UIvar('nTXTnums','')
+  UIvar('nTXTch4','0')
+  UIvar('nTXTch0','1')
+  UIvar('usePO','0')
+  UIvar('useTXT','0')
+  UIvar('useEM','0')
+  UIvar('nEMusr','')
+  UIvar('nEMpw','')
+  UIvar('nEMf','')
+  UIvar('nEMt','')
+  UIvar('nEMch4','0')
+  UIvar('nEMch0','0')
+  UIvar('nEMsubj','Notification from Texecom Alarm (Vera Plugin)')
+  UIvar('nEMhead','')
 
   ZiAF = UIvar("Zones to arm in Area A Full Set", CctsUsed)
   ZiAP = UIvar("Zones to arm in Area A Part Set", CctsUsed)	
   ZiBF = UIvar("Zones to arm in Area B Full Set", CctsUsed)
   ZiBP = UIvar("Zones to arm in Area B Part Set", CctsUsed)
-  
+
   UIvar('IP/Serial','s')
   UIvar('PanelIP', '')
   UIvar('PanelPort', '10001')
@@ -1101,13 +1200,14 @@ function init3()
   luup.call_timer("readyForRx",1, '2','', "")
   luup.call_timer("pollTime",1, '7','', "")
   luup.set_failure(false)
-  if(POrestart =='1') then
-    notifyUserP("Controller Restart", "0","0")
-  end
+
+  luup.call_timer("contRest", 1,'5','', "")
   PanelConfigured = 1
   dispatcher() 
 end
-
+function contRest()
+  notifyUserP("Controller Restart", "0","0")
+end
 -------------------------------------------------------------------------------------------
 ---------------------------------LOGGING FUNCTIONS---------------------------------
 -------------------------------------------------------------------------------------------
@@ -1119,8 +1219,8 @@ function texecomLogPDU(PDU,direction,msg_type)
   -- empty file if it reaches 250kb
 
   local outf = io.open(logfile , 'a')
-local filesize = outf:seek("end")
-  
+  local filesize = outf:seek("end")
+
   outf:close()
   if (filesize > 250000) then
     local outf = io.open(logfile , 'w')
@@ -1169,64 +1269,178 @@ end
 
 -- Send a message to user's phone via Pushover
 function notifyUserP(msg, pri, ch)
-  POapp = luup.variable_get(PANEL_SID, "PushOver App Token", panel_device)
-  POuser = luup.variable_get(PANEL_SID, "PushOver User Token", panel_device)
-  POtitle = luup.variable_get(PANEL_SID, "PushOver Message Title", panel_device)
+  luup.log('---------------notify'..msg)
   if (POlastCh4 == 0) then  --controller been restarted 
     if(ch == "4" ) then
       POlastCh4 = msg --dont repeat ch4 msg
     end
   end
   if (msg ~= POlastCh4) then --if messege is the same as the last ch4 msg ignore (prevents multiple reporting of unchanged partition status...)
-    luup.variable_set(PANEL_SID, "Status", "Sending '" .. msg .."'", panel_device) 
-    local POexpire = POexpireV * 60			
-    local data = {}
-    local s = ""
-    if (ch == "4" or ch == "0") then
-      if (POch4sound ~= "") then
-        POsound = "\038"  .. "sound=" .. POch4sound
-      else 
-        POsound = ""
-      end
-      if (POdevCh4 ~= "") then
-        POdev = "\038"  .. "device=" .. POdevCh4
-      else 
-        POdev = ""
-      end
-    else
-      if (POsoundV ~= "") then
-        POsound = "\038"  .. "sound=" .. POsoundV
-      else 
-        POsound = ""
-      end
-      if (POdeviceV ~= "") then
-        POdev = "\038"  .. "device=" .. POdeviceV
-      else 
-        POdev = ""
+    if(getV('usePO')=='1')then 
+      if(ch=='0') then
+        if(getV('nPOch0') =='1') then
+          sendPOn(msg, pri, ch)
+        end
+      elseif(ch=='4')then
+        if(getV('nPOch4')=='1')then
+          sendPOn(msg, pri, ch)
+        end
+      else
+        sendPOn(msg, pri, ch)
       end
     end
-    if (pri == "2") then
-      pri = "2" .."\038" .. "expire=" .. POexpire .. "\038"  .. "retry=".. POretry
+    ---
+    if(getV('useEM')=='1')then 
+      if(ch=='0') then
+        if(getV('nEMch0') =='1') then
+          sendEMn(msg, pri, ch)
+        end
+      elseif(ch=='4')then
+        if(getV('nEMch4')=='1')then
+          sendEMn(msg, pri, ch)
+        end
+      else
+        sendEMn(msg, pri, ch)
+      end
     end
-    local resp={}
-    local request_body = "token=" .. POapp .. "\038" .. "user=" .. POuser .. "\038"  .. "message=".. trim(msg) .. "\038" .. "title=".. trim(POtitle)   .. "\038" .. "priority=" .. pri .. POdev ..POsound
+    ---
+    if(getV('useTXT')=='1')then 
+      if(ch=='0') then
+        if(getV('nTXTch0') =='1') then
+          sendTXTn(msg, pri, ch)
+        end
+      elseif(ch=='4')then
+        if(getV('nTXTch4')=='1')then
+          sendTXTn(msg, pri, ch)
+        end
+      else
+        sendTXTn(msg, pri, ch)
+      end
+    end
+    if(ch == "4") then
+      POlastCh4 = msg
+    end
+  end
+end
 
-    local urlV = "https:" .. "\047" .. "\047" ..  "api.pushover.net" .. "\047" .. "1" .. "\047" .. "messages.xml"
-    local r, c, h, s = https.request
-    {
-      method = "POST",
-      url = urlV,
-      headers = {["Content-Length"] = string.len(request_body)},
-      source = ltn12.source.string(request_body),
-      sink = ltn12.sink.table(resp),
-      protocol = "sslv23",
-      verify = "none",
+function sendTXTn(msg, pri, ch)
+  msg=getV('nTXThead')..': '..msg
+  luup.log('txting: '..msg)
+  local key=getV('nTXTappkey')
+  local num=getV('nTXTnums')--'<123><456><789>'
+  if(num==nil) then 
+    return
+  end
+  luup.log('to '..num)
+  msg=url_encode(msg)
+  for to in num:gmatch("([^<]*)>") do
+    if(string.sub(to,1,1)=='0')then 
+      to=string.sub(to,2)
+    end
+    if(string.len(to)==10)then
+      local s="https://platform.clickatell.com/messages/http/send?apiKey="..key.."&to=44"..to.."&content="..msg
+      luup.inet.wget(s)
+      luup.log(s)
+    end
+  end
+end
+
+
+
+
+function sendEMn(msg)
+  local ping = os.execute("ping -c 1 8.8.8.8")
+  if (ping==0)then
+    emTo=getV('nEMt')
+    msg=getV('nEMhead')..'<br><br>'..msg
+    for eaddr in emTo:gmatch("([^<]*)>") do 
+      sendEmail(msg)
+    end
+    --check emTo and split email addresses calling emr3 each time for each recipient
+  else 
+    luup.log('ping failed: Retrying email notification in 60s')
+    luup.call_timer('sendEMn',1,'1m','',msg)
+  end
+--check ping result and retry in 10 min if unsucessful
+end
+
+function sendEmail(msg)
+  source = smtp.message{
+    headers = {-- Remember that headers are *ignored* by smtp.send. 
+      from = '<'..getV('nEMf')..'>',
+      to=emTo,
+      subject = getV('nEMsubj') 
+    },
+    body = {
+      preamble=msg,
+      [1] = { 
+        headers = {
+          ['content-Type']= 'text/html;'
+        },
+        body = mime.eol(0, msg)
+      }
     }
+  }
+  r, e = smtp.send{
+    from = getV('nEMf'),
+    rcpt = emTo,
+    source = source,
+    server   = "smtp2go.com",
+    port     = "2525",
+    user     = getV('nEMusr'),
+    password = getV('nEMpw')
+  }
+end
+
+function sendPOn(msg,pri,ch)
+  POapp = luup.variable_get(PANEL_SID, "PushOver App Token", panel_device)
+  POuser = luup.variable_get(PANEL_SID, "PushOver User Token", panel_device)
+  POtitle = luup.variable_get(PANEL_SID, "PushOver Message Title", panel_device)
+  luup.variable_set(PANEL_SID, "Status", "Sending '" .. msg .."'", panel_device) 
+  local POexpire = POexpireV * 60			
+  local data = {}
+  local s = ""
+  if (ch == "4" or ch == "0") then
+    if (POch4sound ~= "") then
+      POsound = "\038"  .. "sound=" .. POch4sound
+    else 
+      POsound = ""
+    end
+    if (POdevCh4 ~= "") then
+      POdev = "\038"  .. "device=" .. POdevCh4
+    else 
+      POdev = ""
+    end
+  else
+    if (POsoundV ~= "") then
+      POsound = "\038"  .. "sound=" .. POsoundV
+    else 
+      POsound = ""
+    end
+    if (POdeviceV ~= "") then
+      POdev = "\038"  .. "device=" .. POdeviceV
+    else 
+      POdev = ""
+    end
   end
-  if(ch == "4") then
-    POlastCh4 = msg
+  if (pri == "2") then
+    pri = "2" .."\038" .. "expire=" .. POexpire .. "\038"  .. "retry=".. POretry
   end
-end    
+  local resp={}
+  local request_body = "token=" .. POapp .. "\038" .. "user=" .. POuser .. "\038"  .. "message=".. trim(msg) .. "\038" .. "title=".. trim(POtitle)   .. "\038" .. "priority=" .. pri .. POdev ..POsound
+
+  local urlV = "https:" .. "\047" .. "\047" ..  "api.pushover.net" .. "\047" .. "1" .. "\047" .. "messages.xml"
+  local r, c, h, s = https.request
+  {
+    method = "POST",
+    url = urlV,
+    headers = {["Content-Length"] = string.len(request_body)},
+    source = ltn12.source.string(request_body),
+    sink = ltn12.sink.table(resp),
+    protocol = "sslv23",
+    verify = "none",
+  }
+end
 
 --------------------------------------------------------------------------------------------------
 ---------------------------------COMMUNICATION TO PANEL---------------------------------
@@ -1265,7 +1479,7 @@ end
 function texecomSendPDU()
   texecomLogPDU(PDUtoString(outgoingPDU), "-->", message_type)
   if luup.io.write(outgoingPDU) == false then
-      luup.log('TEXECOM: PDU transmission failed: '..outgoingPDU)
+    luup.log('TEXECOM: PDU transmission failed: '..outgoingPDU)
 
     luup.call_timer("texecomSendPDU", 1,'5','', "")
     luup.variable_set(PANEL_SID, "Status", "cant send PDU", panel_device) 
@@ -1367,6 +1581,15 @@ function texecomProcessPDU()
         luup.variable_set(PANEL_SID, "KeypadDisplay2", string.sub(incomingPDU, 17, 32), panel_device)
         lastKeypadDisplay2 = string.sub(incomingPDU, 17, 32)
       end
+    end
+    message_type = "N"
+    dispatcher()
+    retry = 0
+    commFail = 0
+    return true
+  elseif (message_type == "SF") then
+    if (retry == 0) then
+      sysFlagDecode(string.sub(PDUtoString(incomingPDU),1,-7))--strip off 0d 0a at end of pdu and decode
     end
     message_type = "N"
     dispatcher()
@@ -1549,10 +1772,9 @@ function texecomProcessPDU()
         luup.variable_set(PARTITION_SID, "DetailedArmMode", "ExitDelay", partition_device1)
       elseif (bitAnd(partitionFullStatus, 0x01) ~= 0) then
         if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device1) ~= 2) then
-          if ((POch4 == 1) or (POch4 == "1")) then
-            notifyUserP("Full Set" ,"0","4")
-          end
-							armZones(1, 1) --arm selected zones in area A (1), full set (1)
+          notifyUserP("Full Set" ,"0","4")
+
+          armZones(1, 1) --arm selected zones in area A (1), full set (1)
         end
         luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Full Armed") , partition_device1)
         luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 2, partition_device1)
@@ -1563,10 +1785,8 @@ function texecomProcessPDU()
 
       elseif (bitAnd(partitionPartStatus, 0x01) ~= 0) then
         if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device1) ~= 1) then
-          if ((POch4 == 1) or (POch4 == "1")) then
-            notifyUserP("Part Set" ,"0","4")			
-          end
-							armZones(1, 2) --arm selected zones in area A (1), full set (2)
+          notifyUserP("Part Set" ,"0","4")			
+          armZones(1, 2) --arm selected zones in area A (1), full set (2)
         end
         luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Part Armed") , partition_device1)
         luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 1, partition_device1)
@@ -1576,10 +1796,8 @@ function texecomProcessPDU()
         partition1_armed = 1
       elseif (bitAnd(partitionReadyStatus, 0x01) ~= 0) then
         if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device1) ~= 0) then
-          if ((POch4 == 1) or (POch4 == "1")) then
-            notifyUserP("Disarmed" ,"0","4")
-          end
-							disarmZones(1)
+          notifyUserP("Disarmed" ,"0","4")
+          disarmZones(1)
         end
         luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Ready") , partition_device1)
         luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 0, partition_device1)
@@ -1589,10 +1807,8 @@ function texecomProcessPDU()
         partition1_armed = 0
       else
         if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device1) ~= 0) then
-          if ((POch4 == 1) or (POch4 == "1")) then
-            notifyUserP("Disarmed" ,"0","4")
-          end
-							disarmZones(1)
+          notifyUserP("Disarmed" ,"0","4")
+          disarmZones(1)
         end
         luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Not Ready") , partition_device1)
         luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 0, partition_device1)
@@ -1604,7 +1820,7 @@ function texecomProcessPDU()
       if (max_partitions == 2) then
         if (bitAnd(partitionFullStatus, 0x02) ~= 0) then
           if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device2) ~= 0) then
-								armZones(2, 1) --arm selected zones in area B (2), full set (1)
+            armZones(2, 1) --arm selected zones in area B (2), full set (1)
           end
           luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Full Armed") , partition_device2)
           luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 2, partition_device2)
@@ -1614,7 +1830,7 @@ function texecomProcessPDU()
           partition2_armed = 1
         elseif (bitAnd(partitionPartStatus, 0x02) ~= 0) then
           if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device2) ~= 1) then
-								armZones(2, 2) --arm selected zones in area B (2), Part set (1)
+            armZones(2, 2) --arm selected zones in area B (2), Part set (1)
           end
           luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Part Armed") , partition_device2)
           luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 1, partition_device2)
@@ -1624,7 +1840,7 @@ function texecomProcessPDU()
           partition2_armed = 1
         elseif (bitAnd(partitionReadyStatus, 0x02) ~= 0) then
           if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device2) ~= 0) then
-								disarmZones(2) --disarm selected zones in area B (2)
+            disarmZones(2) --disarm selected zones in area B (2)
           end
           luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Ready") , partition_device2)
           luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 0, partition_device2)
@@ -1634,7 +1850,7 @@ function texecomProcessPDU()
           partition2_armed = 0
         else
           if (luup.variable_get(PARTITION_SID, "DetailedArmModeNum", partition_device2) ~= 0) then
-								disarmZones(2) --disarm selected zones in area B (2)
+            disarmZones(2) --disarm selected zones in area B (2)
           end
           luup.variable_set(PARTITION_SID, "VendorStatus", string.format("Not Ready") , partition_device2)
           luup.variable_set(PARTITION_SID, "DetailedArmModeNum", 0, partition_device2)

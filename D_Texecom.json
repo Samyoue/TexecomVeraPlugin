@@ -60,6 +60,40 @@
                     "ControlType": "label",
                     "Label": {
                         "lang_tag": "status",
+                        "text": "System Flags: "
+                    },
+                    "left": 0,
+                    "Display": {
+                        "Top": 40,
+                        "Left": 50,
+                        "Width": 75,
+                        "Height": 20
+                    }
+                }  
+                ,
+                {
+   "ControlGroup": 1,
+                    "ControlType": "variable",
+                    "Display": {
+                        "Service": "urn:micasaverde-com:serviceId:TexecomAlarmPanel1",
+                        "Variable": "SysFlags",
+                        "Top": 40,
+                        "Left": 150,
+                        "Width": 400,
+                        "Height": 20
+                    }
+                },
+
+{
+   "ControlGroup": 1,  
+   "ControlType": "line_break"
+},
+		              {
+   "ControlGroup": 1,
+
+                    "ControlType": "label",
+                    "Label": {
+                        "lang_tag": "status",
                         "text": "Status: "
                     },
                     "left": 0,

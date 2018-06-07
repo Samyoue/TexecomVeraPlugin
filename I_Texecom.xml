@@ -184,6 +184,13 @@
     	partitionStatusNotSet = 1
 		initialiseComms()
     </run>
-  </action>
+  </action> 
+		<action>
+			<serviceId>urn:micasaverde-com:serviceId:TexecomAlarmPanel1</serviceId>
+			<name>PCop</name>
+			<run>
+				PCop(lul_settings.id,lul_settings.state)
+			</run>
+		</action>
   </actionList>
 </implementation>
