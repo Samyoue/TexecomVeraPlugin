@@ -31,7 +31,7 @@ local CctsUsed='001'
 ------------------------------------------------------------------------------------
 -------------------------------VARIABLES USED--------------------------------------- 
 ------------------------------------------------------------------------------------
-TEXECOM_VERSION				=	"2.73"
+TEXECOM_VERSION				=	"2.8"
 local panelType = '48'
 local outgoingPDU 			=	""
 local incomingPDU 			=	""
@@ -87,7 +87,11 @@ local NumOfCcts 			=	""
 local HtDev         = 0
 
 local hexToBinArr={ ["0"]="0000", ["1"]="0001", ["2"]="0010", ["3"]="0011", ["4"]="0100", ["5"]="0101", ["6"]="0110", ["7"]="0111", ["8"]="1000", ["9"]="1001", ["A"]="1010", ["B"]="1011", ["C"]="1100", ["D"]="1101", ["E"]="1110", ["F"]="1111", [' ']=''}
-local sysFlagArr={'Confirm Devices','Engineer Working','Panel Lid Tamper','Auxiliary Tamper','Bell Tamper','Auxiliary Fuse Blown','Mains Power Off','ATS Path Fault','Coms Failed','Fully Armed','System Open','Courtesy Light','Battery Test On','Battery Fault','Bell Fuse Blown','Service Required','Custom 1 Stage B','Custom 1 Stage A','Confirmed Alarm','UDL Enabled','UDL Call Active','UDL Lockout','Coms Active','Coms Successful','Custom 3 Stage A','Radio-Pad Lost','No Radio-Pad Signal','Radio-Pad Successful','Radio-Pad Failed','Custom 2 Stage A or B','Custom 2 Stage B','Custom 2 Stage A','Com 1 No Signal','Com 2 Fault','Com 1 Fault','Custom 4 Stage A or B','Custom 4 Stage B','Custom 4 Stage A','Custom 3 Stage A or B','Custom 3 Stage B','CIE Fault','No ATS Available','ATS Remote Test','Detector Test','Radio RX Tamper','Radio Jamming','Coms Fault','Com 2 No Signal','IP Path Fault','Com 3 Power On','Com 2 Power On','Com 1 Power On','PSU Mains Fault','WD Test Active','PSU Battery Fault','PSU Fuse Blown','','','','','','Charger Fault','PS Failure','Low Fob Battery'}
+local sysFlagArr={'Confirm Devices','Engineer Working','Panel Lid Tamper','Auxiliary Tamper','Bell Tamper','Auxiliary Fuse Blown','Mains Power Off','ATS Path Fault','Coms Failed','Fully Armed','System Open','Courtesy Light','Battery Test On','Battery Fault','Bell Fuse Blown','Service Required','Custom 1 Stage B','Custom 1 Stage A','Confirmed Alarm','UDL Enabled','UDL Call Active','UDL Lockout','Coms Active','Coms Successful','Custom 3 Stage A','Radio-Pad Lost','No Radio-Pad Signal','Radio-Pad Successful','Radio-Pad Failed','Custom 2 Stage A or B','Custom 2 Stage B','Custom 2 Stage A','Com 1 No Signal','Com 2 Fault','Com 1 Fault','Custom 4 Stage A or B','Custom 4 Stage B','Custom 4 Stage A','Custom 3 Stage A or B','Custom 3 Stage B','CIE Fault','No ATS Available','ATS Remote Test','Detector Test','Radio RX Tamper','Radio Jamming','Coms Fault','Com 2 No Signal','IP Path Fault','Com 3 Power On','Com 2 Power On','Com 1 Power On','PSU Mains Fault','WD Test Active','PSU Battery Fault','PSU Fuse Blown','1','2','3','4','5','Charger Fault','PS Failure','Low Fob Battery'}
+
+local sfPR={}
+sfPR['p']='System Fault Occurred: '
+sfPR['r']='System Fault Restored: '
 
 PANEL_SID					=	"urn:micasaverde-com:serviceId:TexecomAlarmPanel1"
 PARTITION_SID				=	"urn:micasaverde-com:serviceId:AlarmPartition2"
@@ -163,11 +167,21 @@ function sysFlagDecode(pdu)
       res= res..hexToBinArr[string.sub(pdu,i,i)]
     end
   end
+
+
 --then check the '1' bits against the array
   sysFlags=''
+oldFlags=getV('SysFlags')
   for i=1,string.len(res) do
     if(string.find(string.sub(res,i,i),'1'))then
       sysFlags=sysFlags..', '..(sysFlagArr[i])
+      if(string.find(oldFlags,sysFlagArr[i])==nil) then--active and not in old flags (first occurence)
+        notifyUserP(i,'p','5')
+      end
+    else
+      if(string.find(oldFlags,sysFlagArr[i])~=nil) then--was present last time checked but no more (restored)
+        notifyUserP(i,'r','5')
+      end
     end
   end
   sysFlags=string.sub(sysFlags,3)
@@ -1014,6 +1028,12 @@ function texecomStartup(lul_device)
   UIvar('nEMsubj','Notification from Texecom Alarm (Vera Plugin)')
   UIvar('nEMhead','')
 
+  UIvar('nPOsf','')
+  UIvar('nPOsfPri','1')
+  UIvar('nTXTsf','')
+  UIvar('nEMsf','')
+
+
   ZiAF = UIvar("Zones to arm in Area A Full Set", CctsUsed)
   ZiAP = UIvar("Zones to arm in Area A Part Set", CctsUsed)	
   ZiBF = UIvar("Zones to arm in Area B Full Set", CctsUsed)
@@ -1161,14 +1181,12 @@ function init3()
     end
   end
   luup.task('Adding PGM output ',4,'Texecom',-1)
-  for i = 1,4 do
+  for i = 1,tonumber(UIvar('pcop','0')) do
     s = string.format("P%02d", i)	
-    if( string.find (luup.devices[panel_device].id,s) ~= nil ) then
       luup.log("TEXECOM: adding PC CONTROL OP device " .. s, 10)
       sn=ocZ[s]
       luup.chdev.append(panel_device,child_devices,s,sn,"urn:schemas-upnp-org:device:BinaryLight:1","D_BinaryLight1.xml","","",false)
       last_pc = i
-    end
   end
   luup.chdev.sync(panel_device,child_devices)
   --	luup.call_timer("checkWatchdog", 1, "30", "", "")
@@ -1277,13 +1295,19 @@ function notifyUserP(msg, pri, ch)
   end
   if (msg ~= POlastCh4) then --if messege is the same as the last ch4 msg ignore (prevents multiple reporting of unchanged partition status...)
     if(getV('usePO')=='1')then 
-      if(ch=='0') then
+      if(ch=='0') then --controller restart
         if(getV('nPOch0') =='1') then
           sendPOn(msg, pri, ch)
         end
-      elseif(ch=='4')then
+      elseif(ch=='4')then--open/close
         if(getV('nPOch4')=='1')then
           sendPOn(msg, pri, ch)
+        end
+      elseif(ch=='5')then --sysflag (166)
+        sf=getV('nPOsf')
+        npri=getV('nPOsfPri')
+        if(string.find(sf,'|'..msg..'|')~=nil)then --user wants this flag reported via PO
+          sendPOn(sfPR[pri]..sysFlagArr[tonumber(msg)], npri, ch)
         end
       else
         sendPOn(msg, pri, ch)
@@ -1299,6 +1323,11 @@ function notifyUserP(msg, pri, ch)
         if(getV('nEMch4')=='1')then
           sendEMn(msg, pri, ch)
         end
+      elseif(ch=='5')then --sysflag (166)
+        sf=getV('nEMsf')
+        if(string.find(sf,'|'..msg..'|')~=nil)then --user wants this flag reported via EMAIL
+          sendEMn(sfPR[pri]..sysFlagArr[tonumber(msg)], pri, ch)
+        end
       else
         sendEMn(msg, pri, ch)
       end
@@ -1312,6 +1341,11 @@ function notifyUserP(msg, pri, ch)
       elseif(ch=='4')then
         if(getV('nTXTch4')=='1')then
           sendTXTn(msg, pri, ch)
+        end
+      elseif(ch=='5')then --sysflag (166)
+        sf=getV('nTXTsf')
+        if(string.find(sf,'|'..msg..'|')~=nil)then --user wants this flag reported via TEXT
+          sendTXTn(sfPR[pri]..sysFlagArr[tonumber(msg)], pri, ch)
         end
       else
         sendTXTn(msg, pri, ch)

@@ -1,10 +1,4 @@
-var service = 'urn:micasaverde-com:serviceId:TexecomAlarmPanel1';	
-var devID='';
-function Launch(deviceID) {
-    devID=deviceID
-    var html =  `
-
-
+﻿
 <head>
 <style>
 .varTable{
@@ -336,7 +330,7 @@ function innerTab(fr,to){
 			<td><input id="Grab Zone Names on Next LUUP Restart (1= Yes, 0=No)CB" type="checkbox" /></td>
 		</tr>
 	</table>
-  <hr>
+	<hr>
 	<table class="varTable" id="zonesetup">
 
 	</table>
@@ -1560,24 +1554,4 @@ function del(c,t){
 
 </body>
 
-
-
-
-    `
-    set_panel_html(html);
-}
-function Fget(varN){
-  return api.getDeviceState(devID, service, varN);
-}
-function Fsave(varN,varV){
-		api.setDeviceStateVariablePersistent(devID, service, varN,varV,'ok()','nok()',false);
-}
-function Freloadluup(){
-dru=api.getDataRequestURL()+'?id=lu_action&serviceId=urn:micasaverde-com:serviceId:HomeAutomationGateway1&action=RunLua&Code=luup.reload()'
- document.getElementById('I1').src=dru
-}
-function Fipset(ip){
-dru=api.getDataRequestURL()+'?id=lu_action&serviceId=urn:micasaverde-com:serviceId:HomeAutomationGateway1&action=RunLua&Code=luup.ip_set("'+ip+'", '+devID+')'
- document.getElementById('I1').src=dru
-}
 
