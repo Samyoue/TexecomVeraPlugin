@@ -8,45 +8,71 @@ function Launch(deviceID) {
 <head>
 <style>
 .varTable{
-	width:500px;
+	width:510px;
 	border-collapse:collapse;	
+	padding:6px 6px 6px 6px;
+}
+.varTable thead th{
+position: sticky; 
+top:0;
+	border-bottom:1px solid #000000;
+	
+	background-color: #00A652;
+	color: white;
+text-align:center;
+
 }
 
+.z2aTable th{
+position: sticky; 
+top:0;
+	background-color: #00A652;
+	color: white;
+	}
+.varTable th, td{
+		padding:4px 4px 4px 4px;
+
+}
 .varTable tr:nth-child(even) {
 	background-color: #00F60021;
 }
+.z2aTable td:nth-child(1){
+text-align:center;
+}
+.z2aTable td:nth-child(2){
+text-align:center;
+}
+.z2aTable td:nth-child(3){
+text-align:center;
+}
+.z2aTable td:nth-child(4){
+text-align:center;
+}
+.z2aTable td:nth-child(5){
+text-align:center;
+}
+.z2aTable td:nth-child(6){
+text-align:center;
+}
 
 .z2aTable {
-	width: 508px;
+	width: 500px;
 	border-collapse: collapse;
 	border:1px solid #000000;
-
+	padding:4px 4px 4px 4px;
+}
 }
 .z2aTable tr:nth-child(even) {
 	background-color: #00F60021;
 }
-.z2aTable th {
-	border-bottom:1px solid #000000;
-	background-color: #00A652;
-	color: white;
-	padding:8px 8px 8px 8px;
-}
 .z2aTable td{
 	border-bottom:1px solid #bbbbbb;
-	padding:10px 10px 10px 10px;
+		padding:4px 4px 4px 4px;
 }
 
 .z2aTable td:nth-child(odd) {
 	border-right:1px solid #bbbbbb;
 }
-.z2aTable th:nth-child(odd) {
-	border-right:1px solid #000000;
-}
-.z2aTable th:first-child {
-	border-left:1px solid #000000;
-	padding:8px 8px 8px 10px;
-}
-
 
 
 
@@ -285,19 +311,20 @@ function innerTab(fr,to){
 		</tr>
 		<tr>
 			<td  colspan="2">Vera Programming for Texecom Zones: <div class="Ttooltip">(?)<span class="Ttooltiptext">Table of Vera Zones to be Armed/Disarmed based upon Partition (/Area) Arm Status: <br>24 = 24 Hour (Never Disarmed By Vera eg. Panic Button)<br>AF = Area A, Full Set<br>AP = Area A, Part Set<br>BF = Area B, Full Set<br>BP = Area B, Part Set<br><br>eg. If Zone 001 were to have AF ticked, The corresponding Zone 001 within Vera would be armed and disarmed when Area A is Fully Armed and Disarmed.</span></div><br>
-			<table class="z2aTable"><tr>
-			<th style="width: 25px">24</th>
-			<th style="width: 25px">AF</th>
-			<th style="width: 25px">AP</th>
-			<th style="width: 25px">BF</th>
-			<th style="width: 25px">BP</th>
-			<th style="width:25px">#</th>
-			<th>Description</th></tr></table></td>
-		</tr>
+			
+		<div style="overflow-y: auto; border:border:1px solid #000000; overflow-x: auto; height: 200px; width: 520px">
+		<table class="z2aTable">
 		<tr>
-		<td colspan="2">
-		<div style="overflow-y: auto; border:border:1px solid #000000; overflow-x: auto; height: 200px; width: 508px">
-	<table id="z2aTable" class="z2aTable" style="width: 100%">
+			<th>24</th>
+			<th>AF</th>
+			<th>AP</th>
+			<th>BF</th>
+			<th>BP</th>
+			<th>#</th>
+			<th>Description</th></tr>
+			
+			<tbody id="z2aTable" ></tbody>
+
 	</table>
 </div>
 
@@ -330,16 +357,25 @@ function innerTab(fr,to){
 	<h3>Setup Zone Names</h3>
 	<button class="vbut2" style="margin:5px 5px 5px 5px" onclick="innerTab('Zone Names','Zones')">< Back to Zone Setup</button>
 
-	<table>
+	<table class="varTable">
 		<tr>
 			<td style="width: 277px">Grab Zone Names on Next LUUP Restart?</td>
 			<td><input id="Grab Zone Names on Next LUUP Restart (1= Yes, 0=No)CB" type="checkbox" /></td>
 		</tr>
-	</table>
-  <hr>
-	<table class="varTable" id="zonesetup">
+	
+<tr>
+			<td  colspan="2">Vera Name/Type Programming for Texecom Zones:
 
+		<div style="overflow-y: auto; border:border:1px solid #000000; overflow-x: hidden; height: 200px; width: 520px">
+			<table class="varTable"><thead><tr>
+			<th>Texecom</th>
+			<th>Text</th>
+			<th>Type</th>
+			</tr></thead><tbody class="varTable" id="zonesetup">
+</tbody>
 	</table>
+</div>
+</td></tr></table>
 	<hr>
 	<table width="500px">
 		<tr align="center">
@@ -437,7 +473,7 @@ function innerTab(fr,to){
 			<td><input id="nEMch4CB" type="checkbox"/></td>
 		</tr>
 		
-		<tr><td colspan="2">System Flags to Notify via Email:</td>
+		<tr><td colspan="2"><hr>System Flags to Notify via Email:</td>
 		</tr>
 		<tr>
 		<td colspan="2" style="text-align:center">
@@ -449,7 +485,7 @@ function innerTab(fr,to){
  </td>
  </tr>
 		<tr>
-		<td id="nEMsf" colspan="2"><hr><table><tr><td>
+		<td id="nEMsf" colspan="2"><table><tr><td>
 <div style="overflow-y:scroll; overflow-x:hidden; height:100px;width:250px"><table class="varTable" style="overflow-y:scroll;height:100px;width:500px"><tr><td>
 <label><input type="checkbox" id="sfE1">Confirm Devices</label></td></tr><tr><td>
 <label><input type="checkbox" id="sfE2">Engineer Working</label></td></tr><tr><td>
@@ -563,7 +599,7 @@ function innerTab(fr,to){
 			<td><input id="nTXTch4CB" type="checkbox"/></td>
 		</tr>
 		
-		<tr><td colspan="2">System Flags to Notify via Texting:</td>
+		<tr><td colspan="2"><hr>System Flags to Notify via Texting:</td>
 		</tr>
 		<tr>
 		<td colspan="2" style="text-align:center">
@@ -577,7 +613,7 @@ function innerTab(fr,to){
 		<tr>
 		<td id="nTXTsf"
 		
-		 colspan="2"><hr><table><tr><td>
+		 colspan="2"><table><tr><td>
 <div style="overflow-y:scroll; overflow-x:hidden; height:100px;width:250px"><table class="varTable" style="overflow-y:scroll;height:100px;width:500px"><tr><td>
 <label><input type="checkbox" id="sfT1">Confirm Devices</label></td></tr><tr><td>
 <label><input type="checkbox" id="sfT2">Engineer Working</label></td></tr><tr><td>
@@ -690,7 +726,7 @@ function innerTab(fr,to){
 		</tr>
 	
 		
-		<tr><td colspan="2">System Flags to Notify via PushOver:</td>
+		<tr><td colspan="2"><hr>System Flags to Notify via PushOver:</td>
 		</tr>
 		<tr>
 		<td colspan="2" style="text-align:center">
@@ -703,7 +739,7 @@ function innerTab(fr,to){
  </tr>
 <tr></tr>
 <tr>
-		<td id="nPOsf" colspan="2"><hr><table><tr><td>
+		<td id="nPOsf" colspan="2"><table><tr><td>
 <div style="overflow-y:scroll; overflow-x:hidden; height:100px;width:250px"><table class="varTable" style="overflow-y:scroll;height:100px;width:500px"><tr><td>
 <label><input type="checkbox" id="sfP1">Confirm Devices</label></td></tr><tr><td>
 <label><input type="checkbox" id="sfP2">Engineer Working</label></td></tr><tr><td>
@@ -916,7 +952,7 @@ Uses the <a href="http://www.clickatell.com" target="_blank">Clickatell</a> Serv
 <tr><td colspan="2">UK Phone Numbers to Text: <font size="1">(international option coming soon)</font></td></tr>
 	</table>
 
-		<table class="varTable">
+<div style="overflow-y:scroll; overflow-x:hidden; height:155px;width:510px"><table class="varTable" style="overflow-y:scroll;height:100px;width:500px">
 		
 
 		<tr id="nTXTnums">
@@ -960,6 +996,7 @@ Uses the <a href="http://www.clickatell.com" target="_blank">Clickatell</a> Serv
 			<td><input id="text10a" placeholder="Phone Number 10" style="width:360px" /></td>
 		</tr>
 	</table>
+	</div>
 	<hr>
 	<table width="500px">
 		<tr align="center">
@@ -1002,10 +1039,9 @@ Uses the <a href="https://www.smtp2go.com/" target="_blank">SMTP2GO</a> Service.
 			<td>SMTP2GO Password</td>
 			<td><input id="nEMpw" placeholder="SMTP2GO Password" type="text" /></td>
 		</tr>
+		<tr><td colspan="2" style="text-align:center">Email addresses to notify:</td></tr>
 	</table>
-<vera style="text-align:center">Email addresses to notify:</vera>
-	<table class="varTable">
-		
+<div style="overflow-y:scroll; overflow-x:hidden; height:155px;width:510px"><table class="varTable" style="overflow-y:scroll;height:100px;width:500px">
 
 		<tr id="nEMt">
 			<td><button onclick="del(1,'email')">X</button></td>
@@ -1048,6 +1084,7 @@ Uses the <a href="https://www.smtp2go.com/" target="_blank">SMTP2GO</a> Service.
 			<td><input id="email10a" placeholder="Email Recipient 10" style="width:360px" /></td>
 		</tr>
 	</table>
+	</div>
 	<hr>
 	<table width="500px">
 		<tr align="center">
@@ -1293,8 +1330,10 @@ function saveGet(page,saveit){
 	    			row=tbl.insertRow(i)
 	      			c0=row.insertCell(0)
 	      			c1=row.insertCell(1)
-	      			c0.innerHTML='Circuit '+Number(arr[i])+' Text'
+	      			c2=row.insertCell(2)
+	      			c0.innerHTML='Circuit '+Number(arr[i])
 	    			c1.innerHTML='<input id="Cct '+Number(arr[i])+' Text" type="text"  placeholder="Circuit '+Number(arr[i])+' Text"   style="width:215px" value="" />'
+	    			c2.innerHTML='<select id="z'+Number(arr[i])+'tDD" ><option value="">Auto</option><option value="01 ">Door</option><option value="04 ">PIR/Misc</option><option value="09 ">Smoke Detector</option></select>'
 					//document.getElementById('zonesetup').innerHTML+='<tr><td></td><td></td></tr>'
 				}
 			}
@@ -1302,6 +1341,15 @@ function saveGet(page,saveit){
 			    for (i=0;i<arr.length;i++){
 			    	if(Number(arr[i])!=0 && Number.isInteger(Number(arr[i])) ){
 						operation('Cct '+Number(arr[i])+' Text',saveit)
+						operation('z'+Number(arr[i])+'tDD',saveit)
+						ddv=document.getElementById('z'+Number(arr[i])+'tDD').value
+						if(ddv=='02 '){//if ee2 then set as ee1
+						ddv='01 '
+						document.getElementById('z'+Number(arr[i])+'tDD').value='01 '
+						}
+						if(ddv!='01 '&&ddv!='04 '&& ddv!='09 '){//if not recognised set to auto
+						document.getElementById('z'+Number(arr[i])+'tDD').value=''
+						}
 					}
 				}
 			},50)
@@ -1310,7 +1358,7 @@ function saveGet(page,saveit){
 		    for (i=0;i<arr.length;i++){
 		    	if(Number(arr[i])!=0 && Number.isInteger(Number(arr[i])) ){
 					operation('Cct '+Number(arr[i])+' Text',saveit)
-					
+					operation('z'+Number(arr[i])+'tDD',saveit)					
 				}
 			}
 		}
@@ -1554,11 +1602,12 @@ function del(c,t){
 	document.getElementById(t+c+"a").value=""
 	document.getElementById(t+c+"b").value=""
 }
-//function Fget(k){if(k=='CctsUsed'){return '001,002,009'} else if(k=='IP/Serial') {return 's'}else {return k}}
+//function Fget(k){if(k=='CctsUsed'){return '001,002,009,100,101,209,098,069'} else if(k=='IP/Serial') {return 's'}else {return k}}
 
 </script>
 
 </body>
+
 
 
 

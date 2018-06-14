@@ -31,7 +31,7 @@ local CctsUsed='001'
 ------------------------------------------------------------------------------------
 -------------------------------VARIABLES USED--------------------------------------- 
 ------------------------------------------------------------------------------------
-TEXECOM_VERSION				=	"2.8"
+TEXECOM_VERSION				=	"2.84"
 local panelType = '48'
 local outgoingPDU 			=	""
 local incomingPDU 			=	""
@@ -171,7 +171,7 @@ function sysFlagDecode(pdu)
 
 --then check the '1' bits against the array
   sysFlags=''
-oldFlags=getV('SysFlags')
+  oldFlags=getV('SysFlags')
   for i=1,string.len(res) do
     if(string.find(string.sub(res,i,i),'1'))then
       sysFlags=sysFlags..', '..(sysFlagArr[i])
@@ -420,6 +420,17 @@ end
 function getVolts()
   if (message_type == "N") then
     message_type = "VOLTS"
+    outgoingPDU = string.char(0x5C, 0x49, 0x2F)
+    texecomSendPDU()
+  else
+    luup.call_timer("dispatcher", 1,'1','', "")
+  end
+end
+
+-- Send a message to panel to get panel type/version etc
+function getPtype()
+  if (message_type == "N") then
+    message_type = "PT"
     outgoingPDU = string.char(0x5C, 0x56, 0x2F)
     texecomSendPDU()
   else
@@ -568,12 +579,8 @@ function getZoneProg()
       luup.variable_set(PANEL_SID, "Panel Type", "24", panel_device) 
       panelType ='24'
     end
---   local panelType2=string.format('%02X',panelType)
     panelByte=string.char(panelType)
     luup.variable_set(PANEL_SID, "Status", "zp SENDg..."..panelType, panel_device) 
-
---    panelByte=string.char('0x'..panelType-1)
-
     outgoingPDU = string.char(0x5C, 0x51, 0x00)..panelByte..string.char(0x2F) --0C=12, 18=24, 30=48, (58=88 but 50=max)
     texecomSendPDU()
   end
@@ -1142,21 +1149,31 @@ function init2()
     if( string.find (CctsUsed,string.sub(s,2)) ~= nil ) then
       luup.variable_set(PANEL_SID, "Status", "STARTING..."..ZoneT[i.. ":T"], panel_device) 
       luup.log("TEXECOM: adding zone " .. s, 10)
+      if(UIvar('z'..tonumber(string.sub(s,2))..'t',ZoneT[i.. ":T"])~=nil)then
+        
+        ZoneT[i.. ":T"] =getV('z'..i..'t')
+        if(string.len(ZoneT[i.. ":T"])==2)then
+          ZoneT[i.. ":T"]=ZoneT[i.. ":T"]..' '
+        end
+      end
+      cctTxt= string.sub(s,2).. " ".. ZoneT[i.. ":N"]
+      custct=getV('Cct '..tonumber(string.sub(s,2)) ..' Text')
+      if(custct~=nil and custct ~='')then
+        cctTxt=custct
+      end
+      
+
       if (ZoneT[i.. ":T"] == "09 ") then
-        cctTxt = string.sub(s,2).. " ".. ZoneT[i.. ":N"].. " (Fire)"
         luup.chdev.append(panel_device,child_devices,s,cctTxt,"urn:schemas-micasaverde-com:device:SmokeSensor:1","D_SmokeSensor1.xml","","",false)
       elseif ((ZoneT[i.. ":T"] == "01 ") or (ZoneT[i.. ":T"] == "02 ")) then
-        cctTxt = string.sub(s,2).. " ".. ZoneT[i.. ":N"].. " (EE)"
         luup.chdev.append(panel_device,child_devices,s,cctTxt ,"urn:schemas-micasaverde-com:device:DoorSensor:1","D_DoorSensor1.xml","","",false)
       elseif (ZoneT[i.. ":T"] == "04 ") then
-        cctTxt = string.sub(s,2).. " ".. ZoneT[i.. ":N"].. " (Ac)" 
         luup.chdev.append(panel_device,child_devices,s,cctTxt ,"urn:schemas-micasaverde-com:device:MotionSensor:1","D_MotionSensor1.xml","","",false)
       else
-        cctTxt= string.sub(s,2).. " ".. ZoneT[i.. ":N"]
         luup.chdev.append(panel_device,child_devices,s,cctTxt,"urn:schemas-micasaverde-com:device:MotionSensor:1","D_MotionSensor1.xml","","",false)
       end
       local child = findChild(panel_device, s)	
---      luup.attr_set("name",cctTxt, child)
+      luup.attr_set("name",cctTxt, child)
       last_zone = i
       if (last_zone > 15) then
         endzone = "0x" .. string.format("%X", last_zone)
@@ -1183,10 +1200,10 @@ function init3()
   luup.task('Adding PGM output ',4,'Texecom',-1)
   for i = 1,tonumber(UIvar('pcop','0')) do
     s = string.format("P%02d", i)	
-      luup.log("TEXECOM: adding PC CONTROL OP device " .. s, 10)
-      sn=ocZ[s]
-      luup.chdev.append(panel_device,child_devices,s,sn,"urn:schemas-upnp-org:device:BinaryLight:1","D_BinaryLight1.xml","","",false)
-      last_pc = i
+    luup.log("TEXECOM: adding PC CONTROL OP device " .. s, 10)
+    sn=ocZ[s]
+    luup.chdev.append(panel_device,child_devices,s,sn,"urn:schemas-upnp-org:device:BinaryLight:1","D_BinaryLight1.xml","","",false)
+    last_pc = i
   end
   luup.chdev.sync(panel_device,child_devices)
   --	luup.call_timer("checkWatchdog", 1, "30", "", "")
@@ -1579,8 +1596,9 @@ function texecomProcessPDU()
     end
     if (message_type == "I") then
       message_type = "N"
+      getPanelDetails()
       --   if(NumOfCcts =="")then
-      getZoneProg()
+      --getZoneProg()
       --else
       --	getPartitionStatus()
       --end
@@ -1906,11 +1924,23 @@ function texecomProcessPDU()
     return true
   elseif (message_type == "V") then
     if (retry == 0) then
-      luup.variable_set(PANEL_SID, "PanelType", string.sub(incomingPDU, 1, 12), panel_device)
-      luup.variable_set(PANEL_SID, "PanelFirmware", string.sub(incomingPDU, 29, 32), panel_device)
+      p=tonumber(string.sub(incomingPDU, 7, 9))
+      if(p~=nil)then
+        if(p>48)then
+          p=48
+        end
+        luup.variable_set(PANEL_SID, "Panel Type", p, panel_device)
+        f=string.sub(incomingPDU, 23, 29)
+        luup.variable_set(PANEL_SID, "PanelFirmware", f, panel_device)
+        if(tonumber(string.sub(f,1,1))>=4)then
+          luup.variable_set(PANEL_SID, "connectR", 1, panel_device)
+        else
+          luup.variable_set(PANEL_SID, "connectR", 0, panel_device)
+        end
+      end 
     end
     message_type = "N"
-    dispatcher()
+    getZoneProg() 
     watchdog = 0
     retry = 0
     commFail = 0
@@ -1949,7 +1979,8 @@ function texecomProcessPDU()
     return true
   elseif (message_type == "I") then
     if (retry == 0) then
-      getZoneProg() 
+      getPanelDetails()
+      --getZoneProg() 
     else
       initialiseComms() 
     end
