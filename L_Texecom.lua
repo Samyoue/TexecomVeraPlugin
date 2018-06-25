@@ -420,17 +420,6 @@ end
 function getVolts()
   if (message_type == "N") then
     message_type = "VOLTS"
-    outgoingPDU = string.char(0x5C, 0x49, 0x2F)
-    texecomSendPDU()
-  else
-    luup.call_timer("dispatcher", 1,'1','', "")
-  end
-end
-
--- Send a message to panel to get panel type/version etc
-function getPtype()
-  if (message_type == "N") then
-    message_type = "PT"
     outgoingPDU = string.char(0x5C, 0x56, 0x2F)
     texecomSendPDU()
   else
