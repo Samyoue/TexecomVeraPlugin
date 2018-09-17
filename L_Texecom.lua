@@ -172,15 +172,17 @@ function sysFlagDecode(pdu)
 --then check the '1' bits against the array
   sysFlags=''
   oldFlags=getV('SysFlags')
-  for i=1,string.len(res) do
-    if(string.find(string.sub(res,i,i),'1'))then
-      sysFlags=sysFlags..', '..(sysFlagArr[i])
-      if(string.find(oldFlags,sysFlagArr[i])==nil) then--active and not in old flags (first occurence)
-        notifyUserP(i,'p','5')
-      end
-    else
-      if(string.find(oldFlags,sysFlagArr[i])~=nil) then--was present last time checked but no more (restored)
-        notifyUserP(i,'r','5')
+  if(oldFlags~=nil)then
+    for i=1,string.len(res) do
+      if(string.find(string.sub(res,i,i),'1'))then
+        sysFlags=sysFlags..', '..(sysFlagArr[i])
+        if(string.find(oldFlags,sysFlagArr[i])==nil) then--active and not in old flags (first occurence)
+          notifyUserP(i,'p','5')
+        end
+      else
+        if(string.find(oldFlags,sysFlagArr[i])~=nil) then--was present last time checked but no more (restored)
+          notifyUserP(i,'r','5')
+        end
       end
     end
   end
